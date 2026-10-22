@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>WCA Translation Studio</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script>
+</head>
+<body>
+<header>
+  <div><span class="eyebrow">WCA TRANSLATION STUDIO</span><h1>La IA propone. Vos elegís las palabras.</h1><p>Del aviso de nuevas claves a una traducción revisada, en tu idioma.</p></div>
+  <div class="header-actions"><div class="connection-bar"><span class="local">● Prueba local</span><button id="connections-open">Conexiones</button></div><span id="connection-summary" class="muted"></span><button id="export" class="primary">Descargar traducción ↗</button></div>
+</header>
+<div id="demo-banner" class="demo-banner" hidden>DEMO · datos ficticios · sin conexión a Weblate · no subir estos archivos</div>
+<section id="workspace-panel" class="sync-panel" hidden>
+  <div class="sync-heading"><div><span class="eyebrow">SINCRONIZÁ → REVISÁ → DESCARGÁ</span><h2 id="workspace-status">Prepará tu próxima traducción.</h2><p id="workspace-detail"></p></div><button id="sync" class="primary">Sync &amp; Translate ↓</button></div>
+  <div class="project-controls">
+    <label>Componente<select id="component"><option value="locales">Locales · sitio web</option><option value="regulations">Regulations · reglamento</option></select></label>
+    <label>Idioma de destino<select id="language"><option value="es_419">Español latinoamericano · es_419</option></select></label>
+    <label class="model-control">Modelo<select id="model"><option value="">Conectá ChatGPT</option></select></label>
+    <button id="generate" class="primary" hidden>Continuar traducción</button>
+  </div>
+  <p id="catalog-status" class="muted" role="status" aria-live="polite"></p>
+  <p id="generation-status" class="muted"></p>
+  <section id="sync-indicator" class="sync-indicator" aria-label="Etapas de sincronización" hidden><div class="sync-progress-heading"><strong id="sync-current" role="status" aria-live="polite"></strong><span id="sync-elapsed"></span></div><progress id="sync-progress" max="7" value="0"></progress><ol id="sync-stages"></ol></section>
+  <p id="workspace-warnings" class="workspace-warnings"></p>
+  <details id="more-options" class="more-options"><summary>Más opciones</summary>
+    <div class="session-controls"><label for="sessions">Retomar una revisión anterior</label><select id="sessions"></select><button id="open-session">Abrir</button></div>
+    <label class="manual-option"><input id="manual-mode" type="checkbox"> Usar un agente externo · modo local</label>
+    <div id="manual-tools" hidden><div class="actions"><button id="copy-prompt">Copiar prompt</button><button id="load-proposals">Cargar propuestas</button></div>
+      <details id="prompt-details"><summary>Continuar en el proyecto y chat</summary><p>Pegá este prompt en el chat de este proyecto. Después volvé y cargá las propuestas.</p><textarea id="agent-prompt" readonly aria-label="Prompt para el agente"></textarea><p id="session-folder" class="muted"></p></details>
+    </div>
+  </details>
+</section>
+<section class="progress-panel" aria-label="Progreso">
+  <div id="counts"></div><progress id="progress" max="1" value="0"></progress><span id="save" role="status">Cargando…</span>
+</section>
+<div class="workspace">
+<aside>
+  <div class="aside-heading"><h2>Cambios <span id="total"></span></h2><button id="reload" title="Recargar progreso">↻</button></div>
+  <label for="search">Buscar en los textos o el contexto</label><input id="search" type="search" placeholder="Ej.: delegado, 3a, competencia…">
+  <label for="filter">Mostrar</label><select id="filter"><option value="all">Todos</option><option value="pending">Pendientes</option><option value="accepted">Aceptados</option><option value="edited">Editados</option><option value="rejected">Rechazados</option><option value="conflict">Con conflictos</option></select>
+  <nav id="entries" aria-label="Lista de cambios"></nav>
+  <details class="recent"><summary>Comparar con una descarga reciente</summary><p>Cargá una descarga de Weblate para detectar cambios de otros traductores. El archivo se procesa y guarda localmente.</p><input id="recent-file" type="file" accept=".po,.yml,.yaml,text/plain"><p id="recent-status"></p><button id="remove-recent" hidden>Quitar comparación reciente</button></details>
+</aside>
+<main>
+  <div id="empty" hidden>No hay entradas para este filtro.</div>
+  <article id="review" hidden>
+    <div class="entry-heading"><div><span id="position" class="eyebrow"></span><h2 id="context"></h2></div><span id="status" class="badge"></span></div>
+    <section class="source-panel"><h3>Original en inglés</h3><div id="source"></div></section>
+    <div id="forms"></div>
+    <section id="conflict-panel" class="conflict" hidden><h3>Cambió en Weblate</h3><p>Esta traducción es distinta del original de la comparación. Elegí explícitamente qué conservar; la exportación se bloqueará mientras haya un conflicto sin resolver.</p><div id="current"></div><div class="actions"><button id="keep-current">Conservar versión reciente</button><button id="use-chosen">Usar mi decisión de revisión</button></div><p id="resolution"></p></section>
+    <details class="metadata"><summary>Contexto, comentarios y referencias</summary><pre id="metadata"></pre></details>
+    <div class="decision-bar"><div class="actions"><button id="accept" class="primary">Aceptar <kbd>A</kbd></button><button id="reject">Rechazar <kbd>R</kbd></button><button id="edit">Editar <kbd>E</kbd></button><button id="pending" class="quiet">Dejar pendiente</button></div><p id="decision-note"></p></div>
+    <div class="navigation"><button id="prev">← Anterior</button><span>← / → navegar · A aceptar · R rechazar · E editar · Ctrl+Enter guardar edición</span><button id="next">Siguiente →</button></div>
+  </article>
+</main>
+</div>
+<dialog id="export-dialog"><h2>Revisar y descargar</h2><p id="export-counts"></p><p id="export-help" class="muted"></p><div id="validation"></div><label id="pending-ack"><input type="checkbox" id="confirm-pending"> Confirmo omitir las entradas pendientes.</label><label id="warning-ack"><input type="checkbox" id="confirm-warnings"> Revisé las advertencias restantes y confirmo estos cambios.</label><div class="actions"><button id="close-export">Volver</button><button id="download" class="primary">Descargar archivo</button></div></dialog>
+<dialog id="connections-dialog"><div class="dialog-heading"><h2>Conexiones</h2><button id="connections-close" aria-label="Cerrar conexiones">×</button></div>
+<section class="connection-card"><h3>ChatGPT</h3><p id="chatgpt-status">Sin conectar</p><button id="chatgpt-connect" class="primary">Conectar ChatGPT</button></section>
+<section class="connection-card"><h3>Weblate</h3><label>Token de Weblate<input id="weblate-key" type="password" autocomplete="new-password" placeholder="Pegá tu token"></label><p id="weblate-status" role="status"></p><button id="connections-save">Guardar</button></section>
+<p id="connection-message" role="status"></p></dialog>
+<div id="error" role="alert" hidden></div>
+</body>
+</html>

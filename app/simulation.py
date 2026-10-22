@@ -1,0 +1,40 @@
+"""Copia de una descarga real con tres huecos locales para probar generación y revisión."""
+import io
+import copy
+
+from core import Catalog, ReviewError, forms
+from locales import yaml_load, assign
+from weblate import Client
+
+
+class SimulationClient(Client):
+    is_simulation = True
+
+    def download(self):
+        payload = copy.deepcopy(super().download())
+        target = Catalog(payload['target'])
+        available = [(k, e) for k, e in target.by_key.items() if all(v.strip() for v in forms(e)) and 'fuzzy' not in e.flags]
+        if not available:
+            raise ReviewError('No hay traducciones completas para crear esta simulación. Usá la sincronización normal de este idioma.')
+        selected = []
+        for predicate in [lambda e: bool(e.msgid_plural), lambda e: '%{' in e.msgid or '%s' in e.msgid, lambda e: len(e.msgid.split()) >= 3]:
+            match = next(((k,e) for k,e in available if k not in {x[0] for x in selected} and predicate(e)),None)
+            if match:
+                selected.append(match)
+        selected += [pair for pair in available if pair[0] not in {x[0] for x in selected}][:3-len(selected)]
+        replacements = {k:['']*len(forms(e)) for k,e in selected}
+        payload['simulation'] = True
+        payload['simulation_reference'] = {k:forms(e) for k,e in selected}
+        payload['remote_target'] = payload['target']
+        payload['target'] = target.render(replacements)
+        if payload.get('native_yaml') is not None:
+            payload['remote_yaml'] = payload['native_yaml']
+            parser,data,lang=yaml_load(payload['native_yaml'],self.language,payload.get('metadata',{}).get(self.language,{}).get('language',{}).get('aliases',[]))
+            for k,e in selected:
+                item=payload['yaml_mapping'][k]
+                paths=[item['path']+[name] for name in item['plural_forms']] if item['plural_forms'] else [item['path']]
+                for path in paths:
+                    assign(data[lang],path,'')
+            stream=io.StringIO();parser.dump(data,stream);payload['native_yaml']=stream.getvalue()
+        payload.setdefault('warnings',[]).append(f'SIMULACIÓN: se vaciaron {len(selected)} entradas únicamente en esta copia local. No subir sus exportaciones a Weblate.')
+        return payload

@@ -1,0 +1,44 @@
+"""Datos sintéticos para probar el flujo sin red ni credenciales."""
+from pathlib import Path
+import time
+
+from locales import convert_units
+
+
+class DemoClient:
+    is_demo = True
+
+    def __init__(self, delay=.25):
+        self.component = 'locales'
+        self.delay = delay
+        self.progress = None
+        self.env_path = Path('/nonexistent/wca-demo-no-credentials')
+
+    def download(self):
+        for stage, message in [(1, 'DEMO · consultando el estado simulado'), (2, 'DEMO · cargando claves ficticias'), (3, 'DEMO · validando variables y plurales'), (4, 'DEMO · comprobando la base simulada'), (5, 'DEMO · preparando el glosario de ejemplo')]:
+            if self.progress:
+                self.progress({'stage': stage, 'total': 7, 'message': message})
+            time.sleep(self.delay)
+        translations = {'demo->copied': ['Copiado al portapapeles'], 'demo->welcome': ['Te damos la bienvenida, %{name}'], 'demo->cubes': ['%{count} cubo', '%{count} cubos', '%{count} cubos']}
+        units = [
+            {'context': 'demo->copied', 'source': ['Copied to clipboard'], 'target': ['']},
+            {'context': 'demo->welcome', 'source': ['Welcome, %{name}'], 'target': ['Bienvenido, %{name}'], 'fuzzy': True},
+            {'context': 'demo->cubes', 'source': ['%{count} cube', '%{count} cubes'], 'target': ['', '', '']},
+            {'context': 'demo->untouched', 'source': ['Already translated'], 'target': ['Ya traducido']},
+        ]
+        native = '''# DEMO: datos ficticios. No subir a Weblate.
+es-419:
+  demo:
+    copied: ""
+    welcome: Bienvenido, %{name}
+    cubes:
+      one: ""
+      many: ""
+      other: ""
+    untouched: Ya traducido
+'''
+        english, target, mapping = convert_units(units, native)
+        payload = {'english': english, 'target': target, 'glossary': None, 'metadata': {'en': {'revision': 'demo'}, 'es_419': {'revision': 'demo'}}, 'warnings': [], 'demo': True, 'demo_proposals': translations}
+        if self.component == 'locales':
+            payload.update(native_yaml=native, yaml_mapping=mapping)
+        return payload
