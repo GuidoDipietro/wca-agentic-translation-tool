@@ -49,6 +49,9 @@ class BrowserTests(unittest.TestCase):
     def test_chatgpt_cross_site_callback_in_chrome(self):
         self.run_browser('oauth')
 
+    def test_stale_draft_recovery_and_session_isolation(self):
+        self.run_browser('recovery')
+
     def run_browser(self, workspace_mode):
         chrome=shutil.which('google-chrome') or shutil.which('chromium')
         node=shutil.which('node')
@@ -63,7 +66,7 @@ class BrowserTests(unittest.TestCase):
             auth=None
             provider=None
             provider_thread=None
-            connections=Connections(root/'.env',demo=workspace_mode in ('demo','i18n'))
+            connections=Connections(root/'.env',demo=workspace_mode in ('demo','i18n','recovery'))
             if workspace_mode=='automatic':
                 native='fr:\n  stable: Déjà traduit\n  greeting: ""\n  count:\n    one: ""\n    many: ""\n    other: ""\n'
                 units=[{'context':'stable','source':['Already translated'],'target':['Déjà traduit']},{'context':'greeting','source':['Hello, %{name}'],'target':['']},{'context':'count','source':['One cube','%{count} cubes'],'target':['','','']}]
@@ -84,8 +87,11 @@ class BrowserTests(unittest.TestCase):
                     self.assertEqual(query,{'state':'browser-state','client_id':'browser-client','code':'browser-code'})
                     auth.status.return_value={'active':'browser-account','accounts':[{'id':'browser-account','email':'test@example.org','connected':True,'can_translate':True}],'error':None}
                 auth.complete.side_effect=complete
+                def disconnect():
+                    auth.status.return_value={'active':'browser-account','accounts':[{'id':'browser-account','email':'test@example.org','connected':False,'can_translate':False}],'error':None}
+                auth.disconnect.side_effect=disconnect
                 fake_translator=Mock();fake_translator.models.return_value=[{'id':'test-model','name':'Test model'}]
-            elif workspace_mode in ('demo','i18n'):
+            elif workspace_mode in ('demo','i18n','recovery'):
                 controller=Workspace(root/'data',DemoClient())
             elif workspace_mode:
                 text=fixture().replace('#, fuzzy\n','')
@@ -137,12 +143,14 @@ class BrowserTests(unittest.TestCase):
                     time.sleep(.1)
                 self.assertTrue(port_file.exists(),'Chrome did not open DevTools')
                 debug_port=int(port_file.read_text().splitlines()[0])
-                result=subprocess.run([node,str(Path(__file__).with_name('i18n_smoke.mjs' if workspace_mode=='i18n' else 'oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
+                result=subprocess.run([node,str(Path(__file__).with_name('recovery_smoke.mjs' if workspace_mode=='recovery' else 'i18n_smoke.mjs' if workspace_mode=='i18n' else 'oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
                 self.assertEqual(result.returncode,0,result.stdout+result.stderr)
                 print(result.stdout.strip())
                 if workspace_mode=='oauth':
-                    auth.start.assert_called_once_with(server.server_port,None)
-                    auth.complete.assert_called_once_with({'state':'browser-state','client_id':'browser-client','code':'browser-code'})
+                    self.assertEqual([call.args for call in auth.start.call_args_list],[(server.server_port,None),(server.server_port,'browser-account'),(server.server_port,None)])
+                    self.assertEqual(auth.complete.call_count,3)
+                    for call in auth.complete.call_args_list:
+                        self.assertEqual(call.args,({'state':'browser-state','client_id':'browser-client','code':'browser-code'},))
             finally:
                 proc.terminate()
                 try:proc.wait(timeout=8)

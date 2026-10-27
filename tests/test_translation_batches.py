@@ -1,4 +1,5 @@
 import copy
+import io
 import json
 from pathlib import Path
 import sys
@@ -100,15 +101,18 @@ class BatchOptimizationTests(unittest.TestCase):
         resent = {e['key'] for c in translator.propose.call_args_list for e in c.args[2]['requested_entries']}
         self.assertFalse(resent.intersection(cache['entries']))
 
-    def wire_propose(self, result, context):
+    def sse_response(self, result):
         events = [{'type': 'response.output_text.delta', 'delta': json.dumps(result)}, {'type': 'response.completed', 'response': {'status': 'completed'}}]
         response = Mock()
-        response.__enter__ = Mock(return_value=iter([line for e in events for line in [('data: ' + json.dumps(e) + '\n').encode(), b'\n']]))
+        response.__enter__ = Mock(return_value=io.BytesIO(b''.join(line for e in events for line in [('data: ' + json.dumps(e) + '\n').encode(), b'\n'])))
         response.__exit__ = Mock(return_value=False)
+        return response
+
+    def wire_propose(self, result, context):
         auth = Mock()
         auth.access_token.return_value = 'fake-test-token'
         with patch('translation.urllib.request.build_opener') as build:
-            build.return_value.open.return_value = response
+            build.return_value.open.return_value = self.sse_response(result)
             restored = OpenAITranslator(Mock(), auth).propose('chatgpt', 'test-model', context)
             body = json.loads(build.return_value.open.call_args.args[0].data)
         return restored, json.loads(body['input'][0]['content'])
@@ -120,7 +124,36 @@ class BatchOptimizationTests(unittest.TestCase):
         self.assertEqual([e['key'] for e in restored['entries']], [e['key'] for e in reversed(self.w.work['entries'][:2])])
         self.assertEqual([e['key'] for e in wire['requested_entries']], ['1', '2'])
         for bad in [entries[:1], [entries[0], entries[0]], [dict(entries[0], key='999'), entries[1]]]:
-            with self.assertRaises(ReviewError): self.wire_propose({'entries': bad}, context)
+            with self.assertRaises(InvalidTemporaryIDs): self.wire_propose({'entries': bad}, context)
+
+    def test_real_translator_retries_bad_wire_ids_and_keeps_completed_batches(self):
+        good=lambda count:{'entries':[{'key':str(i),'target':['Título'],'note':''} for i in range(1,count+1)]}
+        bad={'entries':[{'key':'999','target':['Título'],'note':''}]}
+        auth=Mock();auth.access_token.return_value='fake-test-token'
+        translator=OpenAITranslator(Mock(),auth)
+        with patch('translation.urllib.request.build_opener') as build:
+            build.return_value.open.side_effect=[self.sse_response(value) for value in (good(32),bad,good(8))]
+            state=generate_proposals(self.w,translator,'chatgpt','test-model')
+            self.assertEqual(build.return_value.open.call_count,3)
+            last=json.loads(build.return_value.open.call_args.args[0].data)
+            self.assertIn('validation_feedback',json.loads(last['input'][0]['content']))
+        self.assertEqual(state['workspace']['ai_completed'],40)
+        self.assertFalse(state['workspace']['ready'])
+        self.assertEqual(len(read_json(self.w.directory(self.w.active_id)/'generation.json')['entries']),40)
+
+    def test_real_translator_stops_after_one_wire_id_retry_and_preserves_progress(self):
+        good={'entries':[{'key':str(i),'target':['Título'],'note':''} for i in range(1,33)]}
+        bad={'entries':[{'key':'999','target':['Título'],'note':''}]}
+        auth=Mock();auth.access_token.return_value='fake-test-token'
+        with patch('translation.urllib.request.build_opener') as build:
+            build.return_value.open.side_effect=[self.sse_response(value) for value in (good,bad,bad)]
+            with self.assertRaises(InvalidTemporaryIDs):
+                generate_proposals(self.w,OpenAITranslator(Mock(),auth),'chatgpt','test-model')
+            self.assertEqual(build.return_value.open.call_count,3)
+        folder=self.w.directory(self.w.active_id)
+        self.assertEqual(len(read_json(folder/'generation.json')['entries']),32)
+        self.assertFalse((folder/'review.po').exists())
+
 
     def test_invalid_temporary_ids_get_one_retry_without_losing_progress(self):
         translator = Mock()

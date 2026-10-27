@@ -4,6 +4,8 @@ Software local para traducir Locales (Ruby YAML), Payload CMS (JSON de mensajes)
 
 **Para traducir:** seguí la [guía simple de uso](USER_GUIDE.es.md). [English](README.md) · [User guide](USER_GUIDE.md).
 
+Licencia MIT, copyright 2026 Guido Dipietro. Ver [LICENSE](LICENSE).
+
 Este README explica instalación, almacenamiento y desarrollo. La guía de uso explica qué botones tocar en la aplicación y en Weblate.
 
 ## Instalación e inicio
@@ -12,7 +14,7 @@ Linux y Python 3.10 o posterior:
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pip install --require-hashes -r requirements.txt
 .venv/bin/python run.py
 ```
 
@@ -36,11 +38,15 @@ ChatGPT usa el flujo local oficial: PKCE, state, nonce, verificación de firma/e
 
 Las credenciales se guardan por separado en `data/auth/chatgpt.json`, con permisos `0600`, y nunca se sirven por HTTP. Desconectar elimina las credenciales locales e intenta revocar el acceso remoto; la interfaz avisa si no puede confirmar la revocación. Los registros anteriores se conservan por compatibilidad, mientras la interfaz usa una cuenta activa.
 
+Reconectar reutiliza el registro de la cuenta guardada. Para iniciar sesión con otra cuenta después de desconectarte, abrí **Más opciones** en la tarjeta de conexión de ChatGPT y marcá **Usar otra cuenta de ChatGPT en el próximo inicio de sesión**.
+
 ## Datos y funcionamiento
 
 Las sesiones se separan por componente, idioma y modo real/demo/simulación. Se guardan en `data/sessions/<fechaUTC>-<id>/`, con referencias inmutables y hashes, mapeos de formatos nativos, `glossary.tbx` opcional, `work.json`, `PROMPT.txt`, progreso y propuestas. La revisión y las exportaciones quedan en la carpeta `review/` de cada sesión. Los nombres internos `decisiones.json` y `resumen_exportacion.json` se conservan por compatibilidad. Protegé las credenciales al respaldar `data/`.
 
 La sincronización detecta traducciones faltantes, plurales incompletos y entradas marcadas para revisión. Las sincronizaciones siguientes también detectan cambios en el inglés por contexto único. Se descargan referencias actuales y se conservan sesiones anteriores. El progreso representa etapas reales, no bytes ni tiempo estimado. Las horas visibles usan formato de 24 h y la zona horaria del navegador.
+
+Las revisiones pendientes por cambios del inglés conservan la fuente y la traducción anteriores entre sincronizaciones. Una decisión de revisión explícita, un cambio en la traducción remota o en su marca de revisión termina ese motivo de pendiente; las decisiones y los borradores no se copian a la sesión nueva.
 
 La generación requiere una acción explícita y nunca aprueba traducciones. Los lotes adaptativos tienen hasta 32 entradas, un presupuesto aproximado de 8.000 tokens de entrada/salida/contexto y hasta 40 entradas por ejecución. Una entrada demasiado grande se procesa sola, sin truncarla. Los lotes validados se conservan para continuar; se rechazan respuestas interrumpidas, rechazadas o incompletas.
 
@@ -48,9 +54,13 @@ Las solicitudes incluyen IDs temporales cortos, claves solicitadas, contexto, gl
 
 Los borradores se guardan tras 500 ms sin escribir y requieren aprobación antes de exportar. Se respetan códigos y alias de idioma. Para Locales se contrastan Babel/CLDR, YAML nativo y API para identificar `zero`, `one`, `two`, `few`, `many`, `other`; un esquema ambiguo bloquea la importación. Los editores admiten dirección automática para idiomas RTL.
 
+Si otra pestaña cambia el progreso mientras tenés un borrador sin guardar, **Recargar progreso** permite comparar ambas versiones. Podés cancelar, cargar la versión guardada o guardar explícitamente tu texto local como borrador pendiente. Si cambió la sesión activa, copiá el texto local antes de cargar esa sesión; la aplicación no mueve borradores entre sesiones.
+
 ## Validación y exportaciones
 
 La descarga normal contiene propuestas aceptadas y ediciones aprobadas. Se omiten pendientes y rechazadas, y debe existir al menos un cambio aprobado. Cargar una descarga reciente de Weblate permite detectar cambios concurrentes y usar ese archivo como base de exportación. Exportar no consulta Weblate.
+
+El YAML reciente de Locales debe conservar las claves existentes, los tipos de nodos, las posiciones de listas y el esquema plural de la sesión. Un archivo incompatible requiere una nueva sincronización. Se conservan las claves remotas adicionales; las claves de traducción inicialmente ausentes pueden seguir ausentes o recibir traducciones.
 
 | Componente | Nombre del archivo |
 | --- | --- |
@@ -98,11 +108,15 @@ Validá con el comando de la sesión:
 
 ## Desarrollo y despliegue
 
+Consultá la [checklist de publicación y próximas iteraciones](CHECKLIST.md) para el trabajo pendiente y las validaciones manuales de integración.
+
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
 RUN_BROWSER_TESTS=1 .venv/bin/python -m unittest discover -s tests -v
 ```
 
 Las pruebas usan proveedores/cuentas ficticias, JWT de prueba, localhost y carpetas temporales, sin llamadas de IA facturables. Las de navegador necesitan Chrome/Chromium y Node >=22; no descargan navegadores. GitHub Actions ejecuta pruebas Python en pushes y pull requests sin secretos. Se versionan código y pruebas, no credenciales, sesiones ni exportaciones de prueba.
+
+Las dependencias de ejecución están fijadas con hashes en `requirements.txt`; editá `requirements.in` y regenerá con el comando al comienzo del lockfile. CI cubre Python 3.10/3.12, navegador y auditorías de dependencias; Dependabot propone actualizaciones semanales. Verificá esos workflows en GitHub después del push. Consultá [SECURITY.md](SECURITY.md) para reportar vulnerabilidades en privado.
 
 Un despliegue público requiere un punto de entrada de producción separado, origen público y callback OAuth HTTPS autorizado, autorización para aplicaciones alojadas, aislamiento de credenciales/sesiones/trabajos/archivos por usuario, almacenamiento durable y pruebas con cuentas separadas. `python run.py` no proporciona eso. Referencias: [requisitos de OpenAI para aplicaciones alojadas](https://developers.openai.com/siwc/token-sharing-open-source), [servicios web de Render](https://render.com/docs/web-services), [discos persistentes](https://render.com/docs/disks), [funciones de Vercel](https://vercel.com/docs/functions/runtimes). WCA OAuth requeriría una [aplicación registrada](https://docs.worldcubeassociation.org/knowledge_base/v0_api.html) y no sustituiría permisos de Weblate. El repositorio no publica ni despliega automáticamente.

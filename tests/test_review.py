@@ -140,6 +140,18 @@ class ReviewTests(unittest.TestCase):
         self.proposed.write_text(fixture()+'\nmsgid "Added"\nmsgstr "Agregado"\n', encoding='utf-8')
         with self.assertRaises(ReviewError): self.load()
 
+    def test_duplicate_context_and_source_is_rejected_even_if_plural_differs(self):
+        text=fixture()+'\nmsgctxt "plural"\nmsgid "One cube"\nmsgid_plural "Other cubes"\nmsgstr[0] "Uno"\nmsgstr[1] "Otros"\n'
+        with self.assertRaisesRegex(ReviewError,'Duplicate identifiers'):
+            Catalog(text)
+
+    def test_combined_fuzzy_and_translation_edits_keep_unapproved_bytes(self):
+        text=fixture().replace('#, fuzzy','#, fuzzy, python-format')
+        catalog=Catalog(text)
+        result=catalog.render({self.singular:['Una propuesta más larga %s']},clear_fuzzy=[self.singular,self.singular])
+        expected=text.replace('#, fuzzy, python-format','#, python-format').replace('msgstr "Hola %s"','msgstr "Una propuesta más larga %s"')
+        self.assertEqual(result,expected)
+
     def test_incomplete_plural_rejected(self):
         with self.assertRaises(ReviewError): Catalog(fixture(plural={0:'Uno'}))
 

@@ -20,7 +20,7 @@ def json_load(text):
     try:
         data = json.loads(text, object_pairs_hook=unique)
         if not isinstance(data, dict) or any(not name or not isinstance(item, dict) or not isinstance(item.get('message'), str) for name, item in data.items()):
-            raise ValueError('Estructura incorrecta')
+            raise ValueError('Incorrect structure')
         return data
     except (ValueError, TypeError):
         raise ReviewError('Invalid Payload JSON: unique keys with a string message field are required.') from None

@@ -7,7 +7,7 @@
 <body>
 <header>
   <div><span class="eyebrow">WCA TRANSLATION STUDIO</span><h1>AI proposes. You choose the words.</h1><p>From new strings to a reviewed translation, in your language.</p></div>
-  <div class="header-actions"><div class="connection-bar"><div class="ui-language" role="group" aria-label="Interface language"><button id="ui-en" type="button" lang="en" aria-label="English" title="English" aria-pressed="true">🇺🇸 EN</button><button id="ui-es" type="button" lang="es" aria-label="Español" title="Español" aria-pressed="false">🇦🇷 ES</button></div><span class="local">● Local preview</span><a id="user-guide" href="/USER_GUIDE.md" target="_blank" rel="noopener">User guide</a><button id="connections-open">Connections</button></div><span id="connection-summary" class="muted"></span><button id="export" class="primary">Download translation ↗</button></div>
+  <div class="header-actions"><div class="connection-bar"><div class="ui-language" role="group" aria-label="Interface language"><button id="ui-en" type="button" lang="en" aria-label="English" title="English" aria-pressed="true">🇺🇸 EN</button><button id="ui-es" type="button" lang="es" aria-label="Español" title="Español" aria-pressed="false">🇦🇷 ES</button></div><a id="user-guide" href="/USER_GUIDE.md" target="_blank" rel="noopener">User guide</a><button id="connections-open">Connections</button></div><span id="connection-summary" class="muted"></span><button id="export" class="primary">Download translation ↗</button></div>
 </header>
 <div id="demo-banner" class="demo-banner" hidden>DEMO · fictional data · no Weblate connection · do not upload these files</div>
 <section id="workspace-panel" class="sync-panel" hidden>
@@ -56,9 +56,17 @@
 </div>
 <dialog id="export-dialog"><h2>Review and download</h2><p id="export-counts"></p><p id="export-help" class="muted"></p><div id="validation"></div><label id="pending-ack"><input type="checkbox" id="confirm-pending"> I confirm that pending entries will be omitted.</label><label id="warning-ack"><input type="checkbox" id="confirm-warnings"> I reviewed the remaining warnings and confirm these changes.</label><div class="actions"><button id="close-export">Back</button><button id="download" class="primary">Download file</button></div></dialog>
 <dialog id="connections-dialog"><div class="dialog-heading"><h2>Connections</h2><button id="connections-close" aria-label="Close connections">×</button></div>
-<section class="connection-card"><h3>ChatGPT</h3><p id="chatgpt-status">Disconnected</p><button id="chatgpt-connect" class="primary">Connect ChatGPT</button></section>
+<section class="connection-card"><h3>ChatGPT</h3><p id="chatgpt-status">Disconnected</p><button id="chatgpt-connect" class="primary">Connect ChatGPT</button><details id="chatgpt-options" hidden><summary>More options</summary><label><input id="chatgpt-new-account" type="checkbox"> Use another ChatGPT account on the next sign-in</label></details></section>
 <section class="connection-card"><h3>Weblate</h3><label>Weblate token<input id="weblate-key" type="password" autocomplete="new-password" placeholder="Paste your token"></label><p id="weblate-status" role="status"></p><button id="connections-save">Save</button></section>
 <p id="connection-message" role="status"></p></dialog>
+<dialog id="draft-recovery-dialog" aria-labelledby="draft-recovery-title">
+<h2 id="draft-recovery-title">Recover your draft</h2>
+<p id="draft-recovery-context" class="muted"></p><p id="draft-recovery-help"></p>
+<h3>Your unsaved draft</h3><div id="draft-recovery-local"></div>
+<h3>Saved version</h3><div id="draft-recovery-saved"></div>
+<p id="draft-recovery-error" role="alert"></p>
+<div class="actions"><button id="draft-recovery-cancel">Cancel</button><button id="draft-recovery-keep-saved">Load saved version</button><button id="draft-recovery-save" class="primary">Save my version as a draft</button></div>
+</dialog>
 <div id="error" role="alert" hidden></div>
 </body>
 </html>

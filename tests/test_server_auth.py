@@ -54,6 +54,21 @@ class AuthNavigationTests(unittest.TestCase):
         self.assertIn('no-store', headers['Cache-Control'])
         self.assertIsNone(self.workspace.active_id)
 
+    def test_slow_request_body_times_out_and_releases_the_operation_lock(self):
+        with patch('server.LOCAL_REQUEST_TIMEOUT',0.1):
+            connection=http.client.HTTPConnection('127.0.0.1',self.server.server_port,timeout=3)
+            try:
+                connection.putrequest('POST','/api/connections')
+                connection.putheader('Content-Type','application/json')
+                connection.putheader('Content-Length','100')
+                connection.endheaders(b'{')
+                response=connection.getresponse()
+                self.assertEqual(response.status,408)
+                self.assertIn('timed out',response.read().decode())
+            finally:
+                connection.close()
+        self.assertEqual(self.request('GET','/api/state')[0],200)
+
     def test_oauth_callback_redirect_can_load_the_app_and_connections(self):
         query = '/auth/callback?state=test-state&client_id=test-client&code=test-code'
         with patch.object(self.auth, 'complete') as complete:

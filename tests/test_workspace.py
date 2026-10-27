@@ -91,6 +91,78 @@ class WorkspaceTests(unittest.TestCase):
         self.assertIn('source_changed',item['reasons'])
         self.assertEqual(len(self.workspace.sessions()),2)
 
+    def test_pending_source_change_survives_syncs_and_restart(self):
+        old=fixture().replace('#, fuzzy\n','')
+        new=old.replace('Hello %s','Hello again %s')
+        self.sync(downloads(old,old));self.sync(downloads(new,new))
+        self.proposals();self.workspace.load_proposals()
+        entry=self.workspace.work['entries'][0]
+        self.workspace.review.decide(entry['key'],{'status':'pending','draft':['Borrador %s']},0)
+        self.workspace=Workspace(self.root/'data',self.client)
+        for _ in range(3):
+            with self.subTest(sync=_):
+                state=self.sync(downloads(new,new))
+                self.assertEqual(state['workspace']['candidate_count'],1)
+                item=self.workspace.work['entries'][0]
+                self.assertIn('source_changed',item['reasons'])
+                self.assertEqual(item['previous_source'],['Hello %s'])
+                self.assertEqual(item['previous_translation'],['Hola %s'])
+                self.assertEqual(state['counts']['accepted'],0)
+
+    def test_explicit_source_change_decisions_end_the_pending_reason(self):
+        old=fixture().replace('#, fuzzy\n','')
+        new=old.replace('Hello %s','Hello again %s')
+        for status in ('accepted','edited','rejected'):
+            with self.subTest(status=status):
+                self.workspace=Workspace(self.root/status,self.client)
+                self.sync(downloads(old,old));self.sync(downloads(new,new))
+                self.proposals();self.workspace.load_proposals()
+                entry=self.workspace.work['entries'][0]
+                decision={'status':status}
+                if status=='edited':decision['values']=['Revisado %s']
+                self.workspace.review.decide(entry['key'],decision,0)
+                state=self.sync(downloads(new,new))
+                self.assertEqual(state['workspace']['candidate_count'],0)
+
+    def test_remote_translation_update_ends_the_pending_source_change(self):
+        old=fixture().replace('#, fuzzy\n','')
+        new=old.replace('Hello %s','Hello again %s')
+        self.sync(downloads(old,old));self.sync(downloads(new,new))
+        translated=new.replace('Hola %s','Hola de nuevo %s')
+        state=self.sync(downloads(translated,new))
+        self.assertEqual(state['workspace']['candidate_count'],0)
+
+    def test_remote_review_flag_clear_ends_the_pending_source_change(self):
+        old=fixture().replace('#, fuzzy\n','')
+        new=old.replace('Hello %s','Hello again %s')
+        self.sync(downloads(old,old))
+        self.sync(downloads(new.replace('msgctxt "greeting"','#, fuzzy\nmsgctxt "greeting"'),new))
+        state=self.sync(downloads(new,new))
+        self.assertEqual(state['workspace']['candidate_count'],0)
+
+    def test_changed_review_inputs_cannot_silently_resolve_a_source_change(self):
+        old=fixture().replace('#, fuzzy\n','')
+        new=old.replace('Hello %s','Hello again %s')
+        self.sync(downloads(old,old));self.sync(downloads(new,new))
+        self.proposals();self.workspace.load_proposals()
+        review=self.workspace.review
+        review.decide(review.changed[0],{'status':'accepted'},0)
+        review.proposed_path.write_text(review.proposed.text.replace('Texto %s','Otra propuesta %s'))
+        active=self.workspace.active_id
+        with self.assertRaises(ReviewError):self.sync(downloads(new,new))
+        self.assertEqual(self.workspace.active_id,active)
+        self.assertEqual(len(self.workspace.sessions()),2)
+
+    def test_modified_previous_work_blocks_sync_without_creating_a_session(self):
+        self.sync(downloads())
+        active=self.workspace.active_id
+        folder=self.workspace.directory(active)
+        work=json.loads((folder/'work.json').read_text())
+        work['entries']=[];write_json(folder/'work.json',work)
+        with self.assertRaisesRegex(ReviewError,'work.json'):self.sync(downloads())
+        self.assertEqual(self.workspace.active_id,active)
+        self.assertEqual(len(self.workspace.sessions()),1)
+
     def test_load_proposals_preserves_progress_and_reopens_sessions(self):
         self.sync(downloads());first=self.workspace.active_id
         self.proposals();state=self.workspace.load_proposals()

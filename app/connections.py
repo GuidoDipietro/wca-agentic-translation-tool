@@ -1,34 +1,9 @@
 """Local credentials: expose status, never keys, in the interface."""
-import json
-import os
 from pathlib import Path
 import re
 
-from core import ReviewError, atomic_write
-from weblate import checked_token
-
-ROOT = Path(__file__).resolve().parent.parent
-
-
-def env_value(name, path=ROOT / '.env'):
-    if name in os.environ:
-        return os.environ[name].strip()
-    path = Path(path)
-    if not path.exists():
-        return ''
-    for line in path.read_text(encoding='utf-8').splitlines():
-        line = line.strip()
-        if line.startswith('export '):
-            line = line[7:].strip()
-        key, sep, value = line.partition('=')
-        if sep and key.strip() == name:
-            value = value.strip()
-            if value[:1] in ('"', "'"):
-                if len(value) < 2 or value[-1] != value[0]:
-                    raise ReviewError(f'{name} has unclosed quotes.')
-                value = value[1:-1]
-            return value
-    return ''
+from core import ReviewError
+from configuration import ROOT, checked_token, env_value
 
 
 class Connections:
@@ -52,7 +27,7 @@ class Connections:
                 raise ReviewError('Configuration values must be strings.')
             value = value.strip()
             if name != 'OPENAI_MODEL':
-                checked_token(value)
+                checked_token(value, name)
             elif value and not re.fullmatch(r'[A-Za-z0-9_.:/-]{1,160}', value):
                 raise ReviewError('Invalid model identifier.')
             cleaned[name] = value

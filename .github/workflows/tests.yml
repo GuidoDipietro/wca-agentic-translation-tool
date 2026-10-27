@@ -9,16 +9,51 @@ permissions:
   contents: read
 
 jobs:
-  tests:
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - run: python -m pip install --require-hashes -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+
+  browser:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version-file: .python-version
           cache: pip
-      - name: Install dependencies
-        run: python -m pip install -r requirements.txt
-      - name: Run tests without external services
-        run: python -m unittest discover -s tests -v
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+      - run: python -m pip install --require-hashes -r requirements.txt
+      - name: Require browser prerequisites instead of silently skipping tests
+        run: |
+          command -v google-chrome || command -v chromium
+          node -e 'if (Number(process.versions.node.split(".")[0]) < 22) process.exit(1)'
+      - run: python -m unittest discover -s tests -p test_browser.py -v
+        env:
+          RUN_BROWSER_TESTS: '1'
+
+  dependencies:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: python -m pip install pip-audit==2.10.1
+      - run: pip-audit --strict --require-hashes -r requirements.txt

@@ -101,6 +101,48 @@ class LocalesTests(unittest.TestCase):
         self.w.open(self.w.active_id)
         self.assertEqual(self.w.review.document['native_recent'],recent)
 
+    def test_recent_yaml_rejects_missing_keys_and_changed_plural_scheme_atomically(self):
+        data=locale_download(pending=False,plural_pending=True)
+        self.sync(data);self.load();r=self.w.review
+        native=data['native_yaml']
+        r.set_recent(native,0)
+        before=copy.deepcopy(r.document)
+        saved=r.state_path.read_bytes()
+        invalid=[
+            'es-419:\n  unrelated: Otro componente\n',
+            native.replace("  stable: 'Sin tocar'\n",''),
+            native.replace('    many: Varios cubos\n',''),
+            native.replace('    other: Otros cubos\n','    two: Dos cubos\n'),
+            native.replace('    other: Otros cubos\n','    other: Otros cubos\n    two: Dos cubos\n'),
+            native.replace("  stable: 'Sin tocar'","  stable:\n    nested: Nuevo tipo"),
+        ]
+        for text in invalid:
+            with self.subTest(text=text):
+                with self.assertRaises(ReviewError):r.set_recent(text,1)
+                self.assertEqual(r.document,before)
+                self.assertEqual(r.state_path.read_bytes(),saved)
+                self.assertEqual(r.document['native_recent'],native)
+
+    def test_recent_yaml_allows_translation_of_keys_missing_from_the_initial_download(self):
+        data=locale_download();self.sync(data);self.load();r=self.w.review
+        recent=data['native_yaml']+'  notifications:\n    copied: Copiado\n'
+        r.set_recent(recent,0)
+        self.assertEqual(r.document['native_recent'],recent)
+
+    def test_recent_yaml_preserves_list_positions(self):
+        native='es-419:\n  days:\n    - Uno\n    - Dos\n'
+        units=[{'context':f'days->{i}','source':[source],'target':[target],'fuzzy':True}
+               for i,(source,target) in enumerate([('One','Uno'),('Two','Dos')])]
+        english,target,mapping=convert_units(units,native)
+        self.sync(dict(downloads(target,english),native_yaml=native,yaml_mapping=mapping));self.load()
+        r=self.w.review
+        for text in ['es-419:\n  days:\n    - Uno\n', 'es-419:\n  days:\n    "0": Uno\n    "1": Dos\n']:
+            with self.subTest(text=text):
+                with self.assertRaises(ReviewError):r.set_recent(text,0)
+                self.assertEqual(r.document['revision'],0)
+        r.set_recent(native.replace('Dos','Segundo'),0)
+        self.assertEqual(r.document['revision'],1)
+
     def test_component_baselines_and_progress_are_separate(self):
         self.client.download.return_value=downloads();self.w.sync('regulations');regs=self.w.active_id
         state=self.sync(locale_download(pending=False))

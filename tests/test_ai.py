@@ -1,3 +1,4 @@
+import io
 import json
 from pathlib import Path
 import sys
@@ -70,7 +71,7 @@ class AIWorkflowTests(unittest.TestCase):
     def test_complete_sse_response_is_parsed_without_unsupported_plan_fields(self):
         expected={'entries':[{'key':'test','target':['Texte'],'note':''}]}
         events=[{'type':'response.output_text.delta','delta':json.dumps(expected)},{'type':'response.completed','response':{'status':'completed'}}]
-        response=Mock();response.__enter__=Mock(return_value=iter([line for e in events for line in [('data: '+json.dumps(e)+'\n').encode(),b'\n']]))
+        response=Mock();response.__enter__=Mock(return_value=io.BytesIO(b''.join(line for e in events for line in [('data: '+json.dumps(e)+'\n').encode(),b'\n'])))
         response.__exit__=Mock(return_value=False)
         config=Mock();auth=Mock();auth.access_token.return_value='oauth-test-token'
         provider=OpenAITranslator(config,auth)
@@ -83,7 +84,7 @@ class AIWorkflowTests(unittest.TestCase):
     def test_stream_must_complete_before_proposals_are_accepted(self):
         events=[{'type':'response.output_text.delta','delta':'{"entries":[]}'},{'type':'response.failed'}]
         # The provider consumes SSE line by line without using a truncated response.
-        response=Mock();response.__enter__=Mock(return_value=iter([line for e in events for line in [('data: '+json.dumps(e)+'\n').encode(),b'\n']]))
+        response=Mock();response.__enter__=Mock(return_value=io.BytesIO(b''.join(line for e in events for line in [('data: '+json.dumps(e)+'\n').encode(),b'\n'])))
         response.__exit__=Mock(return_value=False)
         config=Mock();config.get.return_value='private-test-key'
         provider=OpenAITranslator(config,Mock())

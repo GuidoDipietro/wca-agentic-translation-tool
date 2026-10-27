@@ -1,6 +1,5 @@
 """Read-only WCA Weblate client. Never sends translations."""
 import json
-import os
 from pathlib import Path
 import time
 import urllib.error
@@ -11,37 +10,14 @@ from datetime import datetime, timezone
 import polib
 
 from core import ReviewError
+from configuration import checked_token, env_value
 from languages import language_code
 
 BASE = 'https://translate.worldcubeassociation.org'
 
 
-def checked_token(value):
-    if any(c.isspace() or ord(c) < 33 or ord(c) > 126 for c in value):
-        raise ReviewError('WEBLATE_TOKEN contains spaces or invalid characters. Check .env without sharing its contents.')
-    return value
-
-
 def load_token(env_path):
-    if 'WEBLATE_TOKEN' in os.environ:
-        return checked_token(os.environ['WEBLATE_TOKEN'].strip())
-    path = Path(env_path)
-    if not path.exists():
-        return ''
-    # Do not execute shell code or expand variables from the file.
-    for line in path.read_text(encoding='utf-8').splitlines():
-        line = line.strip()
-        if line.startswith('export '):
-            line = line[7:].strip()
-        name, sep, value = line.partition('=')
-        if sep and name.strip() == 'WEBLATE_TOKEN':
-            value = value.strip()
-            if value[:1] in ('"', "'"):
-                if len(value) < 2 or value[-1] != value[0]:
-                    raise ReviewError('WEBLATE_TOKEN has unclosed quotes in .env.')
-                value = value[1:-1]
-            return checked_token(value)
-    return ''
+    return checked_token(env_value('WEBLATE_TOKEN', env_path))
 
 
 class WeblateHTTPError(ReviewError):

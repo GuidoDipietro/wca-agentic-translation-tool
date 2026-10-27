@@ -14,6 +14,7 @@ import uuid
 import jwt
 
 from core import ReviewError, atomic_write
+from network import MAX_PROVIDER_JSON_BYTES
 
 ISSUER = 'https://auth.openai.com'
 RESOURCE = 'https://api.openai.com/v1'
@@ -38,12 +39,16 @@ def http_json(url, body=None, form=False, headers=None):
     req = urllib.request.Request(url, data=payload, headers=request_headers)
     try:
         with urllib.request.build_opener(NoRedirect()).open(req, timeout=35) as response:
-            raw = response.read(4 * 1024 * 1024)
+            raw = response.read(MAX_PROVIDER_JSON_BYTES + 1)
+            if len(raw) > MAX_PROVIDER_JSON_BYTES:
+                raise ReviewError('The OpenAI response exceeds the 4 MB limit.')
             return json.loads(raw) if raw else {}
     except urllib.error.HTTPError as exc:
         code = exc.code
         exc.close()
         raise ReviewError(f'OpenAI returned HTTP {code}. Check your connection and account access or sign in again.') from None
+    except ReviewError:
+        raise
     except (urllib.error.URLError, TimeoutError, OSError, ValueError):
         raise ReviewError('Could not complete the OpenAI connection. Try again.') from None
 
@@ -152,7 +157,7 @@ class ChatGPTAuth:
     def select(self, identifier):
         with self.lock:
             if identifier not in self.data['accounts']:
-                raise ReviewError('Cuenta desconocida.')
+                raise ReviewError('Unknown ChatGPT account.')
             self.data['active'] = identifier
             self.save()
 
@@ -160,7 +165,7 @@ class ChatGPTAuth:
         with self.lock:
             item = self.data['accounts'].get(self.data.get('active'))
             if not item or not item.get('access_token') or 'chatgpt.tokens.use.direct' not in item.get('scopes', []) or 'resource.invoke' not in item.get('scopes', []):
-                raise ReviewError('Connect ChatGPT and authorize plan usage, or choose the API key option.')
+                raise ReviewError('Connect ChatGPT and authorize plan usage, or use an external agent under More options.')
             if item.get('expires_at', 0) < time.time() + 60:
                 if not item.get('refresh_token'):
                     raise ReviewError('The ChatGPT connection expired. Sign in again.')
