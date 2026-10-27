@@ -93,6 +93,42 @@ class AuthNavigationTests(unittest.TestCase):
         self.assertFalse(self.auth.pending)
         self.assertIsNone(self.workspace.active_id)
 
+    def test_untrusted_posts_are_forbidden_while_an_operation_is_running(self):
+        entered = threading.Event()
+        release = threading.Event()
+        results = []
+
+        def configure(values):
+            entered.set()
+            if not release.wait(10):
+                raise AssertionError('Test operation was not released')
+
+        worker = threading.Thread(target=lambda: results.append(self.request(
+            'POST', '/api/connections', {'Content-Type': 'application/json'}, '{"values":{}}'
+        )), daemon=True)
+        with patch.object(Connections, 'configure', side_effect=configure), patch.object(self.auth, 'start') as start:
+            worker.start()
+            try:
+                self.assertTrue(entered.wait(3), 'The local operation must hold the lock')
+                for extra in [NAVIGATION, {'Origin': 'https://other.example'}, {'Host': 'other.example'}]:
+                    with self.subTest(headers=extra):
+                        status, _, _ = self.request('POST', '/api/chatgpt/start',
+                            dict(extra, **{'Content-Type': 'application/json'}), '{}')
+                        self.assertEqual(status, 403)
+                status, _, _ = self.request('POST', '/api/chatgpt/start',
+                    {'Content-Type': 'application/json'}, '{}')
+                self.assertEqual(status, 409, 'Trusted requests must still respect the operation lock')
+                start.assert_not_called()
+                self.assertFalse(release.is_set())
+            finally:
+                release.set()
+                worker.join(timeout=5)
+        self.assertFalse(worker.is_alive())
+        self.assertEqual(len(results), 1)
+        self.assertEqual(results[0][0], 200)
+        self.assertFalse(self.auth.pending)
+        self.assertIsNone(self.workspace.active_id)
+
     def test_frames_and_fetch_requests_cannot_use_the_navigation_exception(self):
         for mode, destination in [('navigate', 'iframe'), ('cors', 'empty'), ('no-cors', 'document')]:
             with self.subTest(mode=mode, destination=destination):

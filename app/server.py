@@ -169,6 +169,9 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                 self.json_response({'error': 'Resource not found.'}, 404)
 
         def do_POST(self):
+            # Reject untrusted requests before they can observe or contend for the lock.
+            if not self.trusted():
+                return
             if not operation_lock.acquire(blocking=False):
                 self.json_response({'error': 'An operation is in progress. Wait for it to finish.'}, 409)
                 return
@@ -216,8 +219,6 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                 controller.client.progress = None
 
         def handle_post(self):
-            if not self.trusted():
-                return
             if self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
                 self.json_response({'error': 'application/json is required.'}, 415)
                 return
