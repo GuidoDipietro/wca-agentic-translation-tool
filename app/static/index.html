@@ -13,7 +13,7 @@
 <section id="workspace-panel" class="sync-panel" hidden>
   <div class="sync-heading"><div><span class="eyebrow">SINCRONIZÁ → REVISÁ → DESCARGÁ</span><h2 id="workspace-status">Prepará tu próxima traducción.</h2><p id="workspace-detail"></p></div><button id="sync" class="primary">Sync &amp; Translate ↓</button></div>
   <div class="project-controls">
-    <label>Componente<select id="component"><option value="locales">Locales · sitio web</option><option value="regulations">Regulations · reglamento</option></select></label>
+    <label>Componente<select id="component"><option value="locales">Locales · sitio web</option><option value="payload">Payload CMS · contenido del sitio</option><option value="regulations">Regulations · reglamento</option></select></label>
     <label>Idioma de destino<select id="language"><option value="es_419">Español latinoamericano · es_419</option></select></label>
     <label class="model-control">Modelo<select id="model"><option value="">Conectá ChatGPT</option></select></label>
     <button id="generate" class="primary" hidden>Continuar traducción</button>
@@ -39,7 +39,7 @@
   <label for="search">Buscar en los textos o el contexto</label><input id="search" type="search" placeholder="Ej.: delegado, 3a, competencia…">
   <label for="filter">Mostrar</label><select id="filter"><option value="all">Todos</option><option value="pending">Pendientes</option><option value="accepted">Aceptados</option><option value="edited">Editados</option><option value="rejected">Rechazados</option><option value="conflict">Con conflictos</option></select>
   <nav id="entries" aria-label="Lista de cambios"></nav>
-  <details class="recent"><summary>Comparar con una descarga reciente</summary><p>Cargá una descarga de Weblate para detectar cambios de otros traductores. El archivo se procesa y guarda localmente.</p><input id="recent-file" type="file" accept=".po,.yml,.yaml,text/plain"><p id="recent-status"></p><button id="remove-recent" hidden>Quitar comparación reciente</button></details>
+  <details class="recent"><summary>Comparar con una descarga reciente</summary><p>Cargá una descarga de Weblate para detectar cambios de otros traductores. El archivo se procesa y guarda localmente.</p><input id="recent-file" type="file" accept=".po,.yml,.yaml,.json,text/plain,application/json"><p id="recent-status"></p><button id="remove-recent" hidden>Quitar comparación reciente</button></details>
 </aside>
 <main>
   <div id="empty" hidden>No hay entradas para este filtro.</div>

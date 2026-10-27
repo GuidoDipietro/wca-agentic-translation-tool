@@ -1,5 +1,6 @@
 """Comparación, persistencia y exportación locales. No usa la red."""
 import copy
+from glossary import contains, source_matches, variants
 from collections import Counter
 from datetime import datetime, timezone
 import hashlib
@@ -365,13 +366,14 @@ class Review:
                 if tokens(pattern, reference) == tokens(pattern, value) and tokens(pattern, source) != tokens(pattern, value):
                     warnings.append(self.issue('source_placeholders', entry_key, f'{prefix}: los placeholders no coinciden con el inglés (puede ser un problema previo).', i, source, value, True))
                 for term in self.glossary:
-                    if not any(re.search(r'(?<!\w)' + re.escape(word) + r'(?!\w)', source, re.I) for word in term['source'] if word):
+                    if not source_matches(term, source):
                         continue
-                    for forbidden in term['forbidden']:
+                    target_language = self.original.po.metadata.get('Language', '')
+                    for forbidden in variants(term['forbidden'], target_language):
                         if forbidden and re.search(r'(?<!\w)' + re.escape(forbidden) + r'(?!\w)', value, re.I):
                             warnings.append(self.issue('forbidden_term', entry_key, f'{prefix}: término prohibido por el glosario: {forbidden}.', i, source + forbidden, value, True))
-                    if term['preferred'] and not any(re.search(r'(?<!\w)' + re.escape(word) + r'(?!\w)', value, re.I) for word in term['preferred'] if word):
-                        warnings.append(self.issue('preferred_term', entry_key, f'{prefix}: revisar terminología; se esperaba: {", ".join(term["preferred"])}.', i, source + json.dumps(term["preferred"]), value, True))
+                    if term['preferred'] and not contains(value, variants(term['preferred'], target_language)):
+                        warnings.append(self.issue('preferred_term', entry_key, f'{prefix}: revisar terminología; se esperaba: {", ".join(term["preferred"])}.', i, source + json.dumps(variants(term['preferred'], target_language)), value, True))
             replacements[entry_key] = values
         self.dismissed_issues = []
         for collection in (errors, warnings):

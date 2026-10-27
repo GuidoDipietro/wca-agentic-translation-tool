@@ -126,7 +126,7 @@ class Client:
                 raise ReviewError('Weblate devolvió un archivo que no es UTF-8.') from None
 
     def translations(self, component='locales'):
-        if component not in ('locales', 'regulations'):
+        if component not in ('locales', 'regulations', 'payload'):
             raise ReviewError('Componente inválido.')
         path = f'/api/components/wca/{component}/translations/?page_size=500'
         seen, result = set(), []
@@ -175,13 +175,13 @@ class Client:
 
         total, pending = counts(overall)
         supported_pending = 0
-        for component in ('locales', 'regulations'):
+        for component in ('locales', 'regulations', 'payload'):
             try:
                 item = json.loads(self.get(f'/api/translations/wca/{component}/{code}/'))
             except WeblateHTTPError as exc:
                 if exc.code not in (403, 404):
                     raise
-                # Sin estadísticas de ambos componentes no se atribuyen pendientes.
+                # Sin estadísticas de todos los componentes no se atribuyen pendientes.
                 return {'language': code, 'total': total, 'pending': pending, 'outside_supported': None}
             supported_pending += counts(item)[1]
         return {'language': code, 'total': total, 'pending': pending,
@@ -280,11 +280,23 @@ class Client:
             self.notify(3, 'Validando el YAML, las claves y las formas plurales')
             english, target, mapping = convert_units(units, native, target_language, before[target_language].get('language', {}).get('aliases', []))
             files = {'en': english, target_language: target}
+        elif self.component == 'payload':
+            from payload import convert_units as convert_payload, json_load as payload_json_load
+            self.notify(2, 'Descargando el JSON de Payload CMS y sus unidades')
+            native_json = self.get(f'/api/translations/wca/payload/{target_language}/file/')
+            units = self.units(target_language)
+            if before['en'].get('total') is not None and len(units) != before['en']['total']:
+                raise ReviewError('La fuente inglesa y Payload tienen distinta cantidad de unidades. Volvé a sincronizar.')
+            english, target, json_mapping = convert_payload(units, native_json, target_language)
+            extra_count = len(set(payload_json_load(native_json)) - set(json_mapping.values()))
+            if extra_count:
+                warnings.append(f'Payload: el JSON contiene {extra_count} claves que no aparecen en las unidades actuales de la API. Se conservan en la base original y en la exportación completa; no se proponen ni se incluyen en la descarga de cambios aprobados.')
+            files = {'en': english, target_language: target}
         else:
             self.notify(2, 'Descargando los archivos de Regulations')
             files = {target_language: self.get(f'/api/translations/wca/regulations/{target_language}/file/')}
         try:
-            if self.component != 'locales':
+            if self.component == 'regulations':
                 files['en'] = self.get('/api/translations/wca/regulations/en/file/')
         except WeblateHTTPError as exc:
             if exc.code != 403:
@@ -301,4 +313,7 @@ class Client:
         except ReviewError as exc:
             glossary = None
             warnings.append('Glosario no descargado: ' + str(exc))
-        return {'english': files['en'], 'target': files[target_language], 'glossary': glossary, 'metadata': after, 'warnings': warnings, 'native_yaml': native, 'yaml_mapping': mapping}
+        result = {'english': files['en'], 'target': files[target_language], 'glossary': glossary, 'metadata': after, 'warnings': warnings, 'native_yaml': native, 'yaml_mapping': mapping}
+        if self.component == 'payload':
+            result.update(native_json=native_json, json_mapping=json_mapping)
+        return result

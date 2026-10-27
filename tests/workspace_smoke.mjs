@@ -13,7 +13,9 @@ try {
  await send('Page.enable');await send('Runtime.enable');await send('Emulation.setDeviceMetricsOverride',{width:1360,height:1000,deviceScaleFactor:1,mobile:false});await send('Page.navigate',{url:base});
  await wait("typeof state!=='undefined' && state && state.workspace && !document.getElementById('workspace-panel').hidden");
  assert(await evaluate('state.workspace.active_id===null'),'Clean repository opens without PO files');
- await evaluate(`document.getElementById('component').value=${JSON.stringify(component || 'regulations')}`);
+ await wait('!catalogBusy()');
+ await evaluate(`document.getElementById('component').value=${JSON.stringify(component || 'regulations')};document.getElementById('component').dispatchEvent(new Event('change'))`);
+ await wait('!catalogBusy() && !document.getElementById("sync").disabled');
  await evaluate("document.getElementById('manual-mode').checked=true;document.getElementById('manual-mode').dispatchEvent(new Event('change'))");
  await click('sync');await wait('state.workspace.sessions.length===1 && !document.getElementById("sync").disabled');
  assert(await evaluate('state.workspace.candidate_count===0'),'First complete base has no fabricated work');
@@ -31,7 +33,8 @@ try {
  await click('accept');await wait('state.counts.accepted===1 && saving===0');
  await click('accept');await wait('state.counts.accepted===2 && saving===0');
  const result=await evaluate('api("/api/export",{revision:state.revision})');
- assert(result.filename.endsWith(component==='locales'?'.yml':'.po'),'Correct native export format');
+ assert(result.filename.endsWith(component==='payload'?'.json':component==='locales'?'.yml':'.po'),'Correct native export format');
+ if(component==='payload') {const data=JSON.parse(result.content);assert(data.new.message==='Nueva clave' && data.stable.message==='Sin tocar','Payload JSON preserves keys and messages');}
  assert(result.ok && result.content.includes('Nueva clave') && !result.content.includes('#, fuzzy'),'Manual export contains approvals and clears fuzzy');
  await send('Page.navigate',{url:base});await wait("typeof state!=='undefined' && state && state.counts.accepted===2");
  await evaluate("document.getElementById('manual-mode').checked=true;document.getElementById('manual-mode').dispatchEvent(new Event('change'))");

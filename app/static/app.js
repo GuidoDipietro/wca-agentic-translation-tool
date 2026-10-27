@@ -67,13 +67,13 @@ function showWorkspace() {
   showWorkspaceWarnings();
   $('prompt-details').hidden=!w.active_id || !w.candidate_count;
   $('generation-status').textContent=w.ai_completed && !w.ready ? `${w.ai_completed}/${w.candidate_count} propuestas generadas y guardadas.` : '';
-  showAIOptions();
+  catalogStatus();
   $('empty').textContent=!w.active_id ? 'Sincronizá con Weblate para comenzar.' : !w.candidate_count ? 'Esta sesión no tiene entradas para traducir en este componente. Sincronizá para consultar Weblate otra vez.' : !w.ready ? 'Elegí una conexión de IA y traducí la sesión, o copiá el prompt para usar tu agente.' : 'No hay entradas para este filtro.';
 }
 function showWorkspaceWarnings() {
   const warnings=[...(state?.workspace?.warnings || [])];
   if(projectStatus?.language===$('language').value && projectStatus.outside_supported>0) {
-    warnings.push(`El proyecto tiene ${projectStatus.pending} cadenas pendientes; ${projectStatus.outside_supported} están fuera de Locales y Regulations. Esos componentes pueden requerir otros permisos en Weblate.`);
+    warnings.push(`El proyecto tiene ${projectStatus.pending} cadenas pendientes; ${projectStatus.outside_supported} están fuera de Locales, Regulations y Payload CMS. Esos componentes pueden requerir otros permisos en Weblate.`);
   }
   $('workspace-warnings').textContent=warnings.join(' · ');
 }
@@ -217,6 +217,7 @@ $('edit').onclick=()=>act(async()=>{await flush();editing=true;renderEntry();doc
 $('prev').onclick=()=>act(()=>navigate(-1)); $('next').onclick=()=>act(()=>navigate(1));
 for(const id of ['search','filter']) $(id).addEventListener(id==='search'?'input':'change',()=>act(async()=>{await flush();render();}));
 async function workspaceAction(path, data={}) {
+  if((path==='/api/sync' || path==='/api/generate') && catalogBusy())return;
   await flush();
   const isSync=path==='/api/sync' || path==='/api/generate';
   if(isSync)syncStart();
@@ -251,7 +252,7 @@ $('recent-file').onchange=()=>act(async()=>{
 });
 $('remove-recent').onclick=()=>act(async()=>{await flush();await mutate('/api/recent',{text:null});});
 function download(result) {
-  const url=URL.createObjectURL(new Blob([result.content],{type:result.filename.endsWith('.yml')?'application/yaml;charset=utf-8':'text/x-gettext-translation;charset=utf-8'}));
+  const url=URL.createObjectURL(new Blob([result.content],{type:result.filename.endsWith('.json')?'application/json;charset=utf-8':result.filename.endsWith('.yml')?'application/yaml;charset=utf-8':'text/x-gettext-translation;charset=utf-8'}));
   const link=document.createElement('a');link.href=url;link.download=result.filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
   $('save').textContent='✓ Archivo y resumen exportados';
 }
@@ -279,28 +280,44 @@ function provider() {return $('manual-mode').checked?'manual':state?.workspace?.
 function showAIOptions() {
   const manual=$('manual-mode').checked, demo=state?.workspace?.demo;
   $('manual-tools').hidden=!manual;
-  $('model').disabled=manual || demo || syncing || !activeAccount()?.can_translate;
+  $('model').disabled=manual || demo || syncing || catalogBusy() || !activeAccount()?.can_translate;
   const needed=state?.workspace?.active_id && !state.workspace.ready && state.workspace.candidate_count;
   $('generate').hidden=!needed || manual;
-  $('generate').disabled=syncing || (!demo && !activeAccount()?.can_translate);
+  $('generate').disabled=syncing || catalogBusy() || (!demo && !activeAccount()?.can_translate);
   $('generate').textContent=state?.workspace?.ai_completed?'Continuar traducción':'Traducir esta revisión';
   if(demo && !$('model').value){$('model').replaceChildren(new Option('Propuestas de ejemplo',''));}
 }
 const languageCache=new Map(), modelCache=new Map(), catalogTasks=new Map(), catalogMessages=new Map();
 let catalogChain=Promise.resolve();
-function catalogStatus(){ $('catalog-status').textContent=[...catalogMessages.values()].filter(Boolean).join(' · '); }
+function catalogBusy(){return catalogTasks.size>0;}
+function catalogStatus(){
+  const busy=catalogBusy();
+  $('catalog-status').textContent=[...catalogMessages.values()].filter(Boolean).join(' · ');
+  $('catalog-status').classList.toggle('loading',busy);
+  $('workspace-panel').setAttribute('aria-busy',String(busy));
+  $('component').disabled=syncing || busy;
+  $('language').disabled=syncing || busy;
+  $('sync').disabled=syncing || busy || !languageCache.has($('component').value) || !$('language').value;
+  $('sync').textContent=busy?'Consultando Weblate…':'Sync & Translate ↓';
+  showAIOptions();
+}
 function catalogTask(key,label,load) {
   if(catalogTasks.has(key))return catalogTasks.get(key);
-  catalogMessages.set(key,label);catalogStatus();
+  catalogMessages.set(key,label);
   const task=catalogChain.then(load).then(()=>{catalogMessages.delete(key);}).catch(exc=>{catalogMessages.set(key,`${exc.message} Abrí el selector para reintentar.`);}).finally(()=>{catalogTasks.delete(key);catalogStatus();});
-  catalogChain=task;catalogTasks.set(key,task);return task;
+  catalogChain=task;catalogTasks.set(key,task);catalogStatus();return task;
 }
 async function ensureLanguages(force=false) {
   if(!state?.workspace || syncing)return;
   const component=$('component').value;
   if(languageCache.has(component) && !force)return;
-  return catalogTask('languages','Cargando idiomas…',async()=>{
-    const result=await api('/api/languages?component='+encodeURIComponent(component));
+  if(force)languageCache.delete(component);
+  const previous=$('language').value;
+  $('language').replaceChildren(new Option('Cargando idiomas y pendientes…',previous));
+  return catalogTask('languages:'+component,`Consultando idiomas y pendientes de ${component}…`,async()=>{
+    let result;
+    try {result=await api('/api/languages?component='+encodeURIComponent(component));}
+    catch(exc){if($('component').value===component)$('language').replaceChildren(new Option('No se pudieron cargar los idiomas · reintentá',previous));throw exc;}
     languageCache.set(component,result.items);
     if($('component').value!==component)return;
     const code=$('language').value;
@@ -312,7 +329,7 @@ async function ensureProjectStatus(force=false) {
   if(!state?.workspace || syncing || state.workspace.demo || state.workspace.simulation)return;
   const language=$('language').value;
   if(projectStatus?.language===language && !force)return;
-  return catalogTask('project-status','Consultando el estado del proyecto…',async()=>{
+  return catalogTask('project-status:'+language,'Consultando el estado del proyecto…',async()=>{
     const result=await api('/api/project-status?language='+encodeURIComponent(language));
     if($('language').value===language){projectStatus=result.status;showWorkspaceWarnings();}
   });
@@ -322,7 +339,7 @@ async function ensureModels() {
   const account=activeAccount();
   if(!state?.workspace || !account?.can_translate || syncing || provider()==='manual' || state.workspace.demo)return;
   if(modelCache.has(account.id))return;
-  return catalogTask('models','Cargando modelos…',async()=>{
+  return catalogTask('models:'+account.id,'Cargando modelos…',async()=>{
     const result=await api('/api/models?provider=chatgpt');
     if(!result.items.length)throw new Error('La cuenta no devolvió modelos disponibles.');
     if(activeAccount()?.id!==account.id)return;
@@ -337,9 +354,10 @@ $('language').onchange=()=>{showWorkspaceWarnings();ensureProjectStatus();};
 $('model').onfocus=()=>{ensureModels();};
 $('model').onchange=()=>{try{localStorage.setItem('wca-model',$('model').value);}catch{}};
 $('component').onchange=()=>act(async()=>{
-  await flush();const items=languageCache.get($('component').value);
+  const items=languageCache.get($('component').value);
   if(items){const previous=$('language').value;$('language').replaceChildren(...items.map(item=>new Option(`${item.name} · ${item.code} · ${Math.max(0,item.total-item.translated)} pendientes`,item.code)));if(items.some(item=>item.code===previous))$('language').value=previous;}
   else await ensureLanguages();
+  await flush();ensureProjectStatus();catalogStatus();
 });
 $('manual-mode').onchange=()=>{showAIOptions();ensureModels();};
 $('generate').onclick=()=>act(()=>workspaceAction('/api/generate',{provider:provider(),model:$('model').value}));

@@ -29,7 +29,7 @@ class AIWorkflowTests(unittest.TestCase):
         state=generate_proposals(self.w,self.translator,'openai','test-model')
         self.assertTrue(state['workspace']['ready']);self.assertEqual(state['counts']['pending'],2)
         self.assertEqual(state['counts']['accepted'],0)
-        self.assertTrue(self.calls[0]['consistency_examples'])
+        self.assertEqual(self.calls[0]['consistency_examples'], [])
         self.assertEqual(self.calls[0]['language'],'es_419')
         self.assertTrue(self.w.review.export(0)['confirmation_required'])
 

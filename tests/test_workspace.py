@@ -253,16 +253,16 @@ class ClientTests(unittest.TestCase):
         with self.assertRaises(WeblateHTTPError):self.client.download()
         self.assertEqual(self.client.get.call_count,1)
 
-    def test_project_status_distinguishes_private_pending_from_supported_components(self):
+    def test_project_status_includes_payload_pending_in_supported_components(self):
         self.client.get=Mock(side_effect=[json.dumps([{'code':'es_419','total':3588,'translated':3085}]),
-                                          json.dumps({'total':2259,'translated':2259}),json.dumps({'total':826,'translated':826})])
+                                          json.dumps({'total':2259,'translated':2259}),json.dumps({'total':826,'translated':826}),json.dumps({'total':503,'translated':0})])
         result=self.client.project_status('es-419')
-        self.assertEqual(result,{'language':'es_419','total':3588,'pending':503,'outside_supported':503})
-        self.assertTrue(all('/payload/' not in call.args[0] for call in self.client.get.call_args_list))
+        self.assertEqual(result,{'language':'es_419','total':3588,'pending':503,'outside_supported':0})
+        self.assertTrue(any('/payload/' in call.args[0] for call in self.client.get.call_args_list))
 
     def test_project_status_subtracts_pending_in_supported_components(self):
         self.client.get=Mock(side_effect=[json.dumps({'results':[{'code':'es_419','total':100,'translated':70}],'next':None}),
-                                          json.dumps({'total':50,'translated':40}),json.dumps({'total':40,'translated':25})])
+                                          json.dumps({'total':50,'translated':40}),json.dumps({'total':40,'translated':25}),json.dumps({'total':5,'translated':5})])
         self.assertEqual(self.client.project_status('es_419')['outside_supported'],5)
 
     def test_project_status_does_not_misattribute_pending_without_component_access(self):

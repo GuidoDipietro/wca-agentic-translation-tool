@@ -15,6 +15,7 @@ import polib
 from core import Catalog, Review, ReviewError, atomic_write, digest, forms, key
 from weblate import Client, load_token
 from locales import LocalesReview
+from payload import PayloadReview
 from languages import language_code
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -163,8 +164,10 @@ class Workspace:
             if digest((folder / name).read_text(encoding='utf-8')) != expected:
                 raise ReviewError(f'La base de la sesión fue modificada: {name}. Restaurá una copia de la sesión.')
         proposal_path = folder / 'review.po'
-        review_class = LocalesReview if manifest.get('component') == 'locales' else Review
+        review_class = {'locales': LocalesReview, 'payload': PayloadReview}.get(manifest.get('component'), Review)
         native_args = {'native_path': folder / 'downloaded.yml', 'mapping': read_json(folder / 'yaml_mapping.json'), 'language': manifest.get('language', 'es_419'), 'aliases': manifest.get('language_aliases', [])} if review_class is LocalesReview else {}
+        if review_class is PayloadReview:
+            native_args = {'native_path': folder / 'downloaded.json', 'mapping': read_json(folder / 'json_mapping.json'), 'language': manifest.get('language', 'es_419')}
         review = review_class(folder / 'base.po', proposal_path if proposal_path.exists() else folder / 'base.po', folder / 'review', review_keys=[e['key'] for e in work['entries']] if proposal_path.exists() else None, glossary=work.get('glossary', []), source_checks=True, **native_args)
         review.demo = bool(manifest.get('demo'))
         review.simulation = bool(manifest.get('simulation'))
@@ -176,7 +179,7 @@ class Workspace:
         language = language_code(language)
         if language.lower() == 'en':
             raise ReviewError('Elegí un idioma de destino distinto del inglés fuente.')
-        if component not in ("locales", "regulations"):
+        if component not in ("locales", "regulations", "payload"):
             raise ReviewError("Componente no admitido.")
         self.client.component = component
         self.client.language = language
@@ -208,12 +211,17 @@ class Workspace:
             if downloaded.get('native_yaml') is not None:
                 files['downloaded.yml'] = downloaded['native_yaml']
                 files['yaml_mapping.json'] = json.dumps(downloaded['yaml_mapping'], ensure_ascii=False, indent=2) + '\n'
+            if downloaded.get('native_json') is not None:
+                files['downloaded.json'] = downloaded['native_json']
+                files['json_mapping.json'] = json.dumps(downloaded['json_mapping'], ensure_ascii=False, indent=2) + '\n'
+            if downloaded.get('remote_json') is not None:
+                files['remote_reference.json'] = downloaded['remote_json']
             if glossary:
                 files['glossary.tbx'] = glossary
             for name, text in files.items():
                 atomic_write(folder / name, text)
             manifest = {'version': 1, 'id': session_id, 'created_at': now.isoformat(), 'project': 'wca', 'component': component, 'language': language, 'language_aliases': downloaded.get('metadata', {}).get(language, {}).get('language', {}).get('aliases', []), 'demo': bool(downloaded.get('demo')), 'simulation': bool(downloaded.get('simulation')), 'candidates': len(candidates), 'hashes': {name: digest(text) for name, text in files.items()}, 'remote_revisions': {lang: meta.get('revision') for lang, meta in downloaded.get('metadata', {}).items()}, 'warnings': downloaded.get('warnings', [])}
-            work = {'version': 1, 'session_id': session_id, 'base_sha256': digest(base.text), 'entries': candidates, 'glossary': terms, 'language': language, 'language_name': downloaded.get('metadata', {}).get(language, {}).get('language', {}).get('name', language), 'demo': bool(downloaded.get('demo')), 'simulation': bool(downloaded.get('simulation')), 'component': component, 'output_format': 'yml' if component == 'locales' else 'po'}
+            work = {'version': 1, 'session_id': session_id, 'base_sha256': digest(base.text), 'entries': candidates, 'glossary': terms, 'language': language, 'language_name': downloaded.get('metadata', {}).get(language, {}).get('language', {}).get('name', language), 'demo': bool(downloaded.get('demo')), 'simulation': bool(downloaded.get('simulation')), 'component': component, 'output_format': {'locales': 'yml', 'payload': 'json'}.get(component, 'po')}
             for item in candidates:
                 if item['key'] in downloaded.get('simulation_reference', {}):
                     item['simulation_reference'] = downloaded['simulation_reference'][item['key']]
@@ -248,7 +256,7 @@ Traducí exclusivamente las {len(work['entries'])} entradas de work.json al idio
 Usá todo base.po como referencia de consistencia; respetá el glosario y sus términos prohibidos.
 Conservá el sentido normativo, excepciones, negaciones, cantidades, placeholders,
 plurales, enlaces y referencias. Señalá ambigüedades en note; no inventes reglas.
-No modifiques el YAML descargado ni las bases, session.json, work.json, review.po ni decisiones del usuario.
+No modifiques el YAML o JSON descargado ni las bases, session.json, work.json, review.po ni decisiones del usuario.
 Escribí únicamente proposals.json en esa carpeta, con UTF-8, usando este formato:
 {{"version":1,"session_id":"{work['session_id']}","base_sha256":"{work['base_sha256']}","entries":[{{"key":"clave exacta de work.json","target":["una cadena por forma plural"],"note":"explicación breve o duda"}}]}}
 Incluí cada clave solicitada exactamente una vez, sin claves adicionales. No apruebes decisiones.
@@ -327,5 +335,5 @@ Al terminar decime: «Volvé a la interfaz, pulsá Cargar propuestas y revisalas
             entry.update({'note': notes.get(entry['key'], ''), 'reasons': item.get('reasons', []), 'previous_source': item.get('previous_source'), 'previous_translation': item.get('previous_translation'), 'plural_forms': item.get('plural_forms', []), 'simulation_reference': item.get('simulation_reference')})
         generation_path = self.directory(self.active_id) / 'generation.json' if self.active_id else None
         ai_completed = len(read_json(generation_path).get('entries', {})) if generation_path and generation_path.exists() else 0
-        state['workspace'] = {'created_at': self.manifest.get('created_at') if self.manifest else None, 'language': self.manifest.get('language', 'es_419') if self.manifest else 'es_419', 'language_name': self.work.get('language_name', 'es_419') if self.work else 'Español latinoamericano', 'component': self.manifest.get('component', 'regulations') if self.manifest else None, 'output_format': 'yml' if self.manifest and self.manifest.get('component') == 'locales' else 'po', 'active_id': self.active_id, 'revision': self.generation, 'sessions': sessions, 'simulation': bool(getattr(self.client, 'is_simulation', False) is True or (self.manifest and self.manifest.get('simulation'))), 'ai_completed': ai_completed, 'candidate_count': len(work_entries), 'ready': ready, 'demo': bool(getattr(self.client, 'is_demo', False) is True or (self.manifest and self.manifest.get('demo'))), 'token_configured': False if getattr(self.client, 'is_demo', False) is True else bool(self.client.token()) if isinstance(self.client, Client) else bool(load_token(self.client.env_path)), 'warnings': self.manifest.get('warnings', []) if self.manifest else [], 'prompt': self.prompt_text(self.directory(self.active_id), self.work) if self.active_id else '', 'folder': str(self.directory(self.active_id)) if self.active_id else None}
+        state['workspace'] = {'created_at': self.manifest.get('created_at') if self.manifest else None, 'language': self.manifest.get('language', 'es_419') if self.manifest else 'es_419', 'language_name': self.work.get('language_name', 'es_419') if self.work else 'Español latinoamericano', 'component': self.manifest.get('component', 'regulations') if self.manifest else None, 'output_format': {'locales': 'yml', 'payload': 'json'}.get(self.manifest.get('component') if self.manifest else None, 'po'), 'active_id': self.active_id, 'revision': self.generation, 'sessions': sessions, 'simulation': bool(getattr(self.client, 'is_simulation', False) is True or (self.manifest and self.manifest.get('simulation'))), 'ai_completed': ai_completed, 'candidate_count': len(work_entries), 'ready': ready, 'demo': bool(getattr(self.client, 'is_demo', False) is True or (self.manifest and self.manifest.get('demo'))), 'token_configured': False if getattr(self.client, 'is_demo', False) is True else bool(self.client.token()) if isinstance(self.client, Client) else bool(load_token(self.client.env_path)), 'warnings': self.manifest.get('warnings', []) if self.manifest else [], 'prompt': self.prompt_text(self.directory(self.active_id), self.work) if self.active_id else '', 'folder': str(self.directory(self.active_id)) if self.active_id else None}
         return state

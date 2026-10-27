@@ -1,5 +1,6 @@
 """Datos sintéticos para probar el flujo sin red ni credenciales."""
 from pathlib import Path
+import json
 import time
 
 from locales import convert_units
@@ -41,4 +42,10 @@ es-419:
         payload = {'english': english, 'target': target, 'glossary': None, 'metadata': {'en': {'revision': 'demo'}, 'es_419': {'revision': 'demo'}}, 'warnings': [], 'demo': True, 'demo_proposals': translations}
         if self.component == 'locales':
             payload.update(native_yaml=native, yaml_mapping=mapping)
+        if self.component == 'payload':
+            from payload import convert_units as convert_payload
+            singular = [unit for unit in units if len(unit['source']) == 1]
+            native_json = json.dumps({u['context']: {'message': u['target'][0]} for u in singular})
+            english, target, mapping = convert_payload(singular, native_json, getattr(self, 'language', 'es_419'))
+            payload.update(english=english, target=target, native_json=native_json, json_mapping=mapping)
         return payload

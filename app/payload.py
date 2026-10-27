@@ -1,0 +1,125 @@
+"""Payload CMS: JSON de mensajes, con PO únicamente como referencia interna."""
+import copy
+import json
+from pathlib import Path
+
+import polib
+
+from core import Catalog, Review, ReviewError, atomic_write, digest, forms, key
+from languages import language_code
+
+
+def json_load(text):
+    def unique(pairs):
+        result = {}
+        for name, value in pairs:
+            if name in result:
+                raise ValueError('Clave duplicada')
+            result[name] = value
+        return result
+    try:
+        data = json.loads(text, object_pairs_hook=unique)
+        if not isinstance(data, dict) or any(not name or not isinstance(item, dict) or not isinstance(item.get('message'), str) for name, item in data.items()):
+            raise ValueError('Estructura incorrecta')
+        return data
+    except (ValueError, TypeError):
+        raise ReviewError('JSON de Payload inválido: se requieren claves únicas con un campo message de texto.') from None
+
+
+def convert_units(units, native, language='es_419'):
+    data = json_load(native)
+    english, target = polib.POFile(), polib.POFile()
+    for po, code in ((english, 'en'), (target, language_code(language))):
+        po.metadata = {'Language': code, 'Content-Type': 'text/plain; charset=UTF-8'}
+    mapping, contexts = {}, set()
+    for unit in units:
+        context, source, values = unit.get('context'), unit.get('source'), unit.get('target')
+        if not isinstance(context, str) or not context or context in contexts:
+            raise ReviewError('Contexto Payload ausente o duplicado.')
+        if not isinstance(source, list) or len(source) != 1 or not isinstance(source[0], str) or not source[0]:
+            raise ReviewError('Fuente Payload no admitida; se requiere un mensaje singular por clave.')
+        if not isinstance(values, list) or len(values) != 1 or not isinstance(values[0], str):
+            raise ReviewError('Traducción Payload no admitida.')
+        # Los archivos monolingües pueden omitir claves todavía sin traducir.
+        # Una traducción no vacía ausente indica una descarga inconsistente.
+        if context not in data:
+            if values[0] != '':
+                raise ReviewError(f'La API tiene una traducción para {context}, pero la clave no está en el JSON. Volvé a sincronizar.')
+        elif data[context]['message'] != values[0]:
+            raise ReviewError(f'La API y el JSON tienen traducciones distintas para {context}. Volvé a sincronizar.')
+        contexts.add(context)
+        entry = polib.POEntry(msgctxt=context, msgid=source[0], msgstr=source[0], comment=unit.get('note') or '')
+        mapping[key(entry)] = context
+        english.append(entry)
+        translated = copy.deepcopy(entry)
+        translated.msgstr = values[0]
+        if unit.get('fuzzy') or unit.get('state') == 10:
+            translated.flags.append('fuzzy')
+        target.append(translated)
+    # El JSON puede conservar entradas que ya no forman parte de las unidades
+    # activas. Se mantienen en la base nativa, sin inventar fuentes ni propuestas.
+    if not contexts:
+        raise ReviewError('La API no devolvió unidades de Payload para revisar.')
+    return str(english), str(target), mapping
+
+
+class PayloadReview(Review):
+    def __init__(self, *args, native_path, mapping, language='es_419', **kwargs):
+        self.language = language_code(language)
+        self.native_path = Path(native_path)
+        self.native_text = self.native_path.read_text(encoding='utf-8')
+        self.mapping = mapping
+        json_load(self.native_text)
+        super().__init__(*args, **kwargs)
+
+    def set_recent(self, text, revision):
+        self.check_revision(revision)
+        catalog = None
+        if text is not None:
+            data = json_load(text)
+            if any(context not in data and forms(self.original.by_key[k])[0] != '' for k, context in self.mapping.items()):
+                raise ReviewError('La descarga reciente de Payload no contiene todas las claves de la sesión.')
+            catalog = Catalog(self.original.render({k: [data.get(context, {}).get('message', '')] for k, context in self.mapping.items()}))
+        doc = copy.deepcopy(self.document)
+        doc['recent'] = catalog.text if catalog else None
+        doc['native_recent'] = text
+        self.commit(doc)
+        self.recent = catalog
+
+    def export(self, revision, confirm_pending=False, confirm_warnings=False, mode='full'):
+        if mode not in ('full', 'suggestions', 'changes'):
+            raise ReviewError('Modo de exportación JSON inválido.')
+        self.check_revision(revision)
+        output, errors, warnings = self.prepare_export()
+        counts = self.snapshot()['counts']
+        if mode == 'changes' and not self.approved_keys() and not errors:
+            errors.append(self.issue('no_changes', None, 'No hay cambios aprobados para descargar.'))
+        if errors:
+            return {'ok': False, 'errors': errors, 'warnings': warnings, 'dismissed': self.dismissed_issues, 'counts': counts}
+        if (counts['pending'] and not confirm_pending) or (warnings and not confirm_warnings):
+            return {'ok': False, 'errors': [], 'warnings': warnings, 'counts': counts, 'dismissed': self.dismissed_issues, 'confirmation_required': True}
+        if self.native_path.read_text(encoding='utf-8') != self.native_text:
+            raise ReviewError('El JSON de base cambió mientras revisabas.')
+        base = self.document.get('native_recent') or self.native_text
+        data = json_load(base)
+        catalog = Catalog(output)
+        before = copy.deepcopy(data)
+        for entry_key in self.changed:
+            context = self.mapping[entry_key]
+            value = forms(catalog.by_key[entry_key])[0]
+            if context in data or value != '':
+                data.setdefault(context, {})['message'] = value
+        if mode in ('suggestions', 'changes'):
+            data = {self.mapping[k]: data[self.mapping[k]] for k in self.approved_keys()}
+        native = base if mode == 'full' and data == before else json.dumps(data, ensure_ascii=False, indent=4) + '\n'
+        if json_load(native) != data:
+            raise ReviewError('La exportación JSON alteró valores al serializar.')
+        name = f'{self.language}_suggestions.json' if mode == 'suggestions' else f'{self.language}_reviewed.json'
+        if getattr(self, 'demo', False):
+            name = 'DEMO_' + name
+        elif getattr(self, 'simulation', False):
+            name = 'SIMULATION_' + name
+        atomic_write(self.data_dir / name, native)
+        summary = {'ok': True, 'counts': counts, 'warnings': warnings, 'component': 'payload', 'mode': mode, 'dismissed': self.dismissed_issues, 'revision': revision, 'sha256': digest(native)}
+        atomic_write(self.data_dir / 'resumen_exportacion.json', json.dumps(summary, ensure_ascii=False, indent=2) + '\n')
+        return dict(summary, content=native, filename=name)

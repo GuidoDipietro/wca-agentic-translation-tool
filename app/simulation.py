@@ -1,5 +1,6 @@
 """Copia de una descarga real con tres huecos locales para probar generación y revisión."""
 import io
+import json
 import copy
 
 from core import Catalog, ReviewError, forms
@@ -36,5 +37,12 @@ class SimulationClient(Client):
                 for path in paths:
                     assign(data[lang],path,'')
             stream=io.StringIO();parser.dump(data,stream);payload['native_yaml']=stream.getvalue()
+        if payload.get('native_json') is not None:
+            from payload import json_load
+            payload['remote_json'] = payload['native_json']
+            data = json_load(payload['native_json'])
+            for k, e in selected:
+                data[payload['json_mapping'][k]]['message'] = ''
+            payload['native_json'] = json.dumps(data, ensure_ascii=False, indent=4) + '\n'
         payload.setdefault('warnings',[]).append(f'SIMULACIÓN: se vaciaron {len(selected)} entradas únicamente en esta copia local. No subir sus exportaciones a Weblate.')
         return payload

@@ -1,6 +1,6 @@
 # WCA Translation Studio
 
-Herramienta web local para traducir WCA Locales y Regulations con ChatGPT y revisión humana. El flujo normal es **componente e idioma → sincronizar y traducir → revisar → descargar cambios aprobados**.
+Herramienta web local para traducir WCA Locales, Regulations y Payload CMS con ChatGPT y revisión humana. El flujo normal es **componente e idioma → sincronizar y traducir → revisar → descargar cambios aprobados**.
 
 ## Iniciar
 
@@ -37,8 +37,8 @@ Fuentes oficiales: [inicio de sesión](https://developers.openai.com/siwc/token-
 
 ## Traducir y revisar
 
-1. Elegí **Locales** —predeterminado, textos del sitio— o **Regulations**, y el idioma de destino.
-2. Los idiomas y modelos se cargan automáticamente en segundo plano, sin bloquear las decisiones de revisión. También se reintenta al entrar al selector si hubo un error. El modelo se puede cambiar; el navegador recuerda la última elección, sin guardar credenciales.
+1. Elegí **Locales** —predeterminado, textos del sitio—, **Payload CMS** —contenido del sitio, JSON— o **Regulations**, y el idioma de destino.
+2. Los idiomas y modelos se cargan automáticamente en segundo plano. Mientras se consultan idiomas, pendientes o modelos, se muestra un aviso de carga y se deshabilitan los selectores y las acciones de sincronización y traducción; las decisiones de revisión siguen disponibles. El selector de idioma oculta los conteos anteriores durante la consulta. También se reintenta al entrar al selector si hubo un error. El modelo se puede cambiar; el navegador recuerda la última elección, sin guardar credenciales.
 3. Pulsá **Sync & Translate**. Se descargan las referencias vigentes en inglés y el idioma seleccionado, y se buscan claves vacías, plurales incompletos y textos marcados para revisión. Desde la segunda sincronización de ese componente e idioma también se detectan cambios en el inglés por contexto único.
 4. ChatGPT prepara las propuestas. Un idioma sin trabajo pendiente no genera solicitudes de traducción. Si faltan lotes, aparece **Continuar traducción**; no hace falta crear otra sesión.
 5. Revisá cada entrada. **Aceptar** aprueba lo visible y avanza. Si estás editando o tenés un borrador, el mismo botón guarda **tu edición** y avanza; no restaura la propuesta anterior.
@@ -46,9 +46,9 @@ Fuentes oficiales: [inicio de sesión](https://developers.openai.com/siwc/token-
 
 Los borradores se guardan tras 500 ms sin escribir, y quedan pendientes hasta aprobarlos. Esperá el indicador de guardado antes de cerrar. Atajos: A aceptar/guardar edición cuando no estás escribiendo, R rechazar, E editar, ←/→ navegar, Ctrl+Enter aprobar desde el editor.
 
-La generación nunca aprueba propuestas automáticamente. Se guardan lotes validados de hasta ocho entradas, con hasta 40 por ejecución; se puede continuar sin repetir los lotes completos. Las respuestas interrumpidas, rechazadas o incompletas no se usan como traducciones válidas.
+La generación nunca aprueba propuestas automáticamente. Se guardan lotes adaptativos de hasta 32 entradas, con un presupuesto aproximado de 8.000 tokens entre entrada, salida y contexto, y hasta 40 entradas por ejecución; una entrada que exceda el presupuesto se procesa sola, sin truncarla. Se usan IDs temporales cortos, el glosario completo hasta aproximadamente 2.000 tokens; si es mayor, términos relevantes y esenciales de WCA. Se incluyen variantes explícitas en inglés y español, y hasta ocho ejemplos relacionados (máximo 6.000 caracteres); se puede continuar sin repetir los lotes completos. El contador de caracteres corresponde a la respuesta JSON recibida, no al tamaño del pedido. Las respuestas interrumpidas, rechazadas o incompletas no se usan como traducciones válidas.
 
-Para mantener la consistencia, ChatGPT recibe las claves solicitadas, su contexto, glosario y ejemplos relevantes buscados en todo el corpus. Se seleccionan hasta 60 ejemplos, con un límite de tamaño, en vez de reenviar siempre el archivo entero. Se usa Responses API con `store: false`, streaming y salida JSON estructurada. La generación utiliza el acceso y los límites de la cuenta conectada.
+Para mantener la consistencia, ChatGPT recibe las claves solicitadas, su contexto, glosario y ejemplos relevantes buscados en todo el corpus. Se seleccionan hasta ocho ejemplos relacionados, con un límite de 6.000 caracteres, en vez de reenviar siempre el archivo entero. Se usa Responses API con `store: false`, streaming y salida JSON estructurada. La generación utiliza el acceso y los límites de la cuenta conectada.
 
 ## Validaciones en la descarga
 
@@ -65,11 +65,12 @@ Si volvés desde el diálogo sin aprobar una corrección que escribiste ahí, se
 Hay una única descarga normal, con los cambios aceptados o editados y aprobados:
 
 - **Locales:** `IDIOMA_reviewed.yml`, Ruby YAML con las claves modificadas y sus formas plurales. Si una traducción está en una lista, se conserva la lista necesaria para mantener sus índices.
+- **Payload CMS:** `IDIOMA_reviewed.json`, JSON con las claves aprobadas y su campo `message`; conserva los metadatos de cada entrada. Los PO de la sesión son referencias internas.
 - **Regulations:** `IDIOMA_reviewed.po`, PO con encabezado y entradas aprobadas.
 
 El archivo se importa para **fusionar traducciones**, no para reemplazar el archivo completo del repositorio. En Weblate elegí **Files → Upload → Add as translation**, con la gestión de conflictos que corresponda. Para Locales, si preferís otra revisión allí, el mismo archivo sirve con **Add as suggestion**. Regulations no tiene habilitadas las sugerencias en este proyecto. La modalidad se elige al importar, sin descargar dos archivos distintos. Referencia: [documentación de importación de Weblate](https://docs.weblate.org/en/weblate-2026.8/user/files.html).
 
-Las traducciones rechazadas o pendientes no se envían. No hay descarga si no existen cambios aprobados. Las bases originales y las sesiones anteriores se conservan. El estado «sin pendientes» corresponde al componente y a la sesión indicados, cuya fecha de descarga se muestra en el panel. El resumen global de Weblate puede incluir otros componentes, incluso privados; la herramienta avisa si detecta pendientes fuera de Locales y Regulations. El backend mantiene los modos antiguos de exportación para compatibilidad; no se muestran en la interfaz.
+Las traducciones rechazadas o pendientes no se envían. No hay descarga si no existen cambios aprobados. Las bases originales y las sesiones anteriores se conservan. El estado «sin pendientes» corresponde al componente y a la sesión indicados, cuya fecha de descarga se muestra en el panel. El resumen global de Weblate puede incluir otros componentes, incluso privados; la herramienta avisa si detecta pendientes fuera de Locales, Regulations y Payload CMS. El backend mantiene los modos antiguos de exportación para compatibilidad; no se muestran en la interfaz.
 
 Si hubo trabajo concurrente, cargá una descarga actual desde **Comparar con una descarga reciente**. Se detectan conflictos y esa descarga se usa como base. La aplicación no vuelve a consultar Weblate al exportar.
 
@@ -163,3 +164,5 @@ RUN_BROWSER_TESTS=1 .venv/bin/python -m unittest discover -s tests -v
 ```
 
 Las pruebas usan proveedores y cuentas ficticias, JWT de prueba, localhost y carpetas temporales. No consumen IA. Las de navegador requieren Chrome/Chromium y Node >=22.
+
+Las variantes gramaticales explícitas del glosario están en `app/glossary.py`. Se usan tanto al preparar el contexto como al validar términos preferidos y prohibidos. No se deducen traducciones ni variantes para otros idiomas. Las preferencias se obtienen del glosario de Weblate; la revisión humana sigue siendo necesaria.

@@ -1,5 +1,6 @@
 """Prueba optativa con Chrome local; no instala ni descarga navegadores."""
 import os
+import json
 from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 import shutil
@@ -32,6 +33,9 @@ class BrowserTests(unittest.TestCase):
 
     def test_locales_yaml_workflow(self):
         self.run_browser('locales')
+
+    def test_payload_json_workflow(self):
+        self.run_browser('payload')
 
     def test_demo_stages_and_24_hour_times(self):
         self.run_browser('demo')
@@ -85,6 +89,16 @@ class BrowserTests(unittest.TestCase):
                 new=fixture()+'\nmsgctxt \"new\"\nmsgid \"New key\"\nmsgstr \"\"\n'
                 client=Mock();client.env_path=root/'.env'
                 client.download.side_effect=([locale_download(pending=False),locale_download(),locale_download()] if workspace_mode=='locales' else [downloads(text,text),downloads(new,new),downloads(new,new)]) + [ReviewError('Fallo de sincronización de prueba'),locale_download() if workspace_mode=='locales' else downloads(new,new)]
+                if workspace_mode == 'payload':
+                    from payload import convert_units as convert_payload
+                    def payload_data(pending):
+                        units = [{'context': 'stable', 'source': ['Untouched'], 'target': ['Sin tocar']}, {'context': 'greeting', 'source': ['Hello %s'], 'target': ['Hola %s'], 'fuzzy': pending}]
+                        if pending:
+                            units.append({'context': 'new', 'source': ['New key'], 'target': ['']})
+                        native = json.dumps({u['context']: {'message': u['target'][0]} for u in units})
+                        english, target, mapping = convert_payload(units, native)
+                        return dict(downloads(target, english), native_json=native, json_mapping=mapping)
+                    client.download.side_effect = [payload_data(False), payload_data(True), payload_data(True), ReviewError('Fallo de sincronización de prueba'), payload_data(True)]
                 client.translations.return_value=[{'code':'es_419','name':'Spanish','total':3,'translated':1}]
                 controller=Workspace(root/'data',client)
             else:
@@ -120,7 +134,7 @@ class BrowserTests(unittest.TestCase):
                     time.sleep(.1)
                 self.assertTrue(port_file.exists(),'Chrome no abrió DevTools')
                 debug_port=int(port_file.read_text().splitlines()[0])
-                result=subprocess.run([node,str(Path(__file__).with_name('oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', 'locales' if workspace_mode=='locales' else 'regulations'],text=True,capture_output=True,timeout=50)
+                result=subprocess.run([node,str(Path(__file__).with_name('oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
                 self.assertEqual(result.returncode,0,result.stdout+result.stderr)
                 print(result.stdout.strip())
                 if workspace_mode=='oauth':
