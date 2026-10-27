@@ -45,6 +45,8 @@ try {
  await click('sync');await wait('!syncing && !document.getElementById("error").hidden');
  assert(await evaluate(`state.workspace.active_id===${JSON.stringify(previousSession)}`),'Failed sync preserves the previous session');
  assert(await evaluate('document.getElementById("workspace-status").textContent.includes("The last session has been preserved")'),'Failed sync identifies the preserved session');
+ // A failed sync also refreshes the catalog; retry only once the button is usable.
+ await wait('!catalogBusy() && !document.getElementById("sync").disabled');
  await click('sync');await wait(`!syncing && state.workspace.active_id!==${JSON.stringify(previousSession)}`);
  assert(await evaluate('document.getElementById("error").hidden'),'Successful retry clears the previous error banner');
  assert(await evaluate('!document.getElementById("sync-indicator").classList.contains("failed")'),'Successful retry clears the failure indicator');
