@@ -14,7 +14,7 @@ try {
  await click('connections-open');await wait("document.getElementById('connections-dialog').open");
  await click('chatgpt-connect');
  await wait("location.hostname==='localhost' && !!document.getElementById('provider-continue')");
- // Cometer una página de otro sitio reproduce los encabezados reales al volver.
+ // Committing a page from another site reproduces actual return headers.
  await click('provider-continue');
  await wait("location.hostname==='127.0.0.1' && location.pathname==='/' && typeof connectionState!=='undefined' && connectionState?.chatgpt?.active==='browser-account'");
  assert(await evaluate("document.title==='WCA Translation Studio'"),'OAuth returns to the application');
@@ -22,5 +22,5 @@ try {
  assert(await evaluate("location.search==='' && !document.body.textContent.includes('Solicitud externa bloqueada')"),'Callback query is removed and navigation is accepted');
  assert(await evaluate("provider()==='chatgpt'"),'Connected ChatGPT is selected');
  assert(errors.length===0,'Browser errors: '+errors.join('; '));
- console.log('OK OAuth: conectar → proveedor en otro sitio → callback → pantalla principal y cuenta conectada.');
+ console.log('OK OAuth: connect → cross-site provider → callback → main screen and connected account.');
 } finally {await fetch(`${debug}/json/close/${tab.id}`);ws.close();}

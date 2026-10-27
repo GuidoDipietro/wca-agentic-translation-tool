@@ -1,4 +1,4 @@
-"""Prueba optativa con Chrome local; no instala ni descarga navegadores."""
+"""Optional local Chrome test; does not install or download browsers."""
 import os
 import json
 from http.server import BaseHTTPRequestHandler
@@ -23,7 +23,7 @@ from connections import Connections
 from locales import convert_units
 
 
-@unittest.skipUnless(os.environ.get('RUN_BROWSER_TESTS') == '1', 'Optativa: RUN_BROWSER_TESTS=1, Chrome y Node >=22')
+@unittest.skipUnless(os.environ.get('RUN_BROWSER_TESTS') == '1', 'Optional: RUN_BROWSER_TESTS=1, Chrome and Node >=22')
 class BrowserTests(unittest.TestCase):
     def test_local_review_in_chrome(self):
         self.run_browser(False)
@@ -36,6 +36,9 @@ class BrowserTests(unittest.TestCase):
 
     def test_payload_json_workflow(self):
         self.run_browser('payload')
+
+    def test_interface_language_switch_preserves_work(self):
+        self.run_browser('i18n')
 
     def test_demo_stages_and_24_hour_times(self):
         self.run_browser('demo')
@@ -50,7 +53,7 @@ class BrowserTests(unittest.TestCase):
         chrome=shutil.which('google-chrome') or shutil.which('chromium')
         node=shutil.which('node')
         if not chrome or not node:
-            self.skipTest('Chrome o Node no disponibles')
+            self.skipTest('Chrome or Node unavailable')
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
             original=root/'original.po'; proposed=root/'propuesto.po'
@@ -60,7 +63,7 @@ class BrowserTests(unittest.TestCase):
             auth=None
             provider=None
             provider_thread=None
-            connections=Connections(root/'.env',demo=workspace_mode=='demo')
+            connections=Connections(root/'.env',demo=workspace_mode in ('demo','i18n'))
             if workspace_mode=='automatic':
                 native='fr:\n  stable: Déjà traduit\n  greeting: ""\n  count:\n    one: ""\n    many: ""\n    other: ""\n'
                 units=[{'context':'stable','source':['Already translated'],'target':['Déjà traduit']},{'context':'greeting','source':['Hello, %{name}'],'target':['']},{'context':'count','source':['One cube','%{count} cubes'],'target':['','','']}]
@@ -82,13 +85,13 @@ class BrowserTests(unittest.TestCase):
                     auth.status.return_value={'active':'browser-account','accounts':[{'id':'browser-account','email':'test@example.org','connected':True,'can_translate':True}],'error':None}
                 auth.complete.side_effect=complete
                 fake_translator=Mock();fake_translator.models.return_value=[{'id':'test-model','name':'Test model'}]
-            elif workspace_mode=='demo':
+            elif workspace_mode in ('demo','i18n'):
                 controller=Workspace(root/'data',DemoClient())
             elif workspace_mode:
                 text=fixture().replace('#, fuzzy\n','')
                 new=fixture()+'\nmsgctxt \"new\"\nmsgid \"New key\"\nmsgstr \"\"\n'
                 client=Mock();client.env_path=root/'.env'
-                client.download.side_effect=([locale_download(pending=False),locale_download(),locale_download()] if workspace_mode=='locales' else [downloads(text,text),downloads(new,new),downloads(new,new)]) + [ReviewError('Fallo de sincronización de prueba'),locale_download() if workspace_mode=='locales' else downloads(new,new)]
+                client.download.side_effect=([locale_download(pending=False),locale_download(),locale_download()] if workspace_mode=='locales' else [downloads(text,text),downloads(new,new),downloads(new,new)]) + [ReviewError('Test synchronization failure'),locale_download() if workspace_mode=='locales' else downloads(new,new)]
                 if workspace_mode == 'payload':
                     from payload import convert_units as convert_payload
                     def payload_data(pending):
@@ -98,7 +101,7 @@ class BrowserTests(unittest.TestCase):
                         native = json.dumps({u['context']: {'message': u['target'][0]} for u in units})
                         english, target, mapping = convert_payload(units, native)
                         return dict(downloads(target, english), native_json=native, json_mapping=mapping)
-                    client.download.side_effect = [payload_data(False), payload_data(True), payload_data(True), ReviewError('Fallo de sincronización de prueba'), payload_data(True)]
+                    client.download.side_effect = [payload_data(False), payload_data(True), payload_data(True), ReviewError('Test synchronization failure'), payload_data(True)]
                 client.translations.return_value=[{'code':'es_419','name':'Spanish','total':3,'translated':1}]
                 controller=Workspace(root/'data',client)
             else:
@@ -109,7 +112,7 @@ class BrowserTests(unittest.TestCase):
                 class ProviderHandler(BaseHTTPRequestHandler):
                     def do_GET(self):
                         if self.path.startswith('/authorize'):
-                            body=b'<html><body><a id="provider-continue" href="/continue">Confirmar conexion de prueba</a></body></html>'
+                            body=b'<html><body><a id="provider-continue" href="/continue">Confirm test connection</a></body></html>'
                             self.send_response(200)
                             self.send_header('Content-Type','text/html; charset=utf-8')
                             self.send_header('Content-Length',str(len(body)))
@@ -130,11 +133,11 @@ class BrowserTests(unittest.TestCase):
                 port_file=profile/'DevToolsActivePort'
                 for _ in range(150):
                     if port_file.exists():break
-                    if proc.poll() is not None: self.fail('Chrome se cerró al iniciar')
+                    if proc.poll() is not None: self.fail('Chrome closed during startup')
                     time.sleep(.1)
-                self.assertTrue(port_file.exists(),'Chrome no abrió DevTools')
+                self.assertTrue(port_file.exists(),'Chrome did not open DevTools')
                 debug_port=int(port_file.read_text().splitlines()[0])
-                result=subprocess.run([node,str(Path(__file__).with_name('oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
+                result=subprocess.run([node,str(Path(__file__).with_name('i18n_smoke.mjs' if workspace_mode=='i18n' else 'oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
                 self.assertEqual(result.returncode,0,result.stdout+result.stderr)
                 print(result.stdout.strip())
                 if workspace_mode=='oauth':

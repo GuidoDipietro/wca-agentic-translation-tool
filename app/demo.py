@@ -1,4 +1,4 @@
-"""Datos sintéticos para probar el flujo sin red ni credenciales."""
+"""Synthetic data to test the workflow without network access or credentials."""
 from pathlib import Path
 import json
 import time
@@ -16,7 +16,7 @@ class DemoClient:
         self.env_path = Path('/nonexistent/wca-demo-no-credentials')
 
     def download(self):
-        for stage, message in [(1, 'DEMO · consultando el estado simulado'), (2, 'DEMO · cargando claves ficticias'), (3, 'DEMO · validando variables y plurales'), (4, 'DEMO · comprobando la base simulada'), (5, 'DEMO · preparando el glosario de ejemplo')]:
+        for stage, message in [(1, 'DEMO · checking simulated status'), (2, 'DEMO · loading fictional keys'), (3, 'DEMO · validating placeholders and plurals'), (4, 'DEMO · checking the simulated base'), (5, 'DEMO · preparing the sample glossary')]:
             if self.progress:
                 self.progress({'stage': stage, 'total': 7, 'message': message})
             time.sleep(self.delay)
@@ -27,7 +27,7 @@ class DemoClient:
             {'context': 'demo->cubes', 'source': ['%{count} cube', '%{count} cubes'], 'target': ['', '', '']},
             {'context': 'demo->untouched', 'source': ['Already translated'], 'target': ['Ya traducido']},
         ]
-        native = '''# DEMO: datos ficticios. No subir a Weblate.
+        native = '''# DEMO: fictional data. Do not upload to Weblate.
 es-419:
   demo:
     copied: ""

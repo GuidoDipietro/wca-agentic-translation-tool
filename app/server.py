@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Traducción WCA: revisión en localhost y sincronización de solo lectura con Weblate."""
+"""WCA translation: localhost review and read-only synchronization with Weblate."""
 import argparse
 import fcntl
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -39,7 +39,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
         if isinstance(controller, Workspace):
             controller.assert_session(data)
             if not controller.review:
-                raise ReviewError("Primero sincronizá con Weblate.")
+                raise ReviewError('Sync with Weblate first.')
             return controller.review
         return controller
 
@@ -59,7 +59,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
             try:
                 self.wfile.write(data)
             except (BrokenPipeError, ConnectionResetError):
-                # Una recarga puede cancelar una respuesta que ya estaba en curso.
+                # Reloading can cancel a response already in progress.
                 self.close_connection = True
 
         def json_response(self, value, status=200):
@@ -69,14 +69,14 @@ def make_handler(controller, connections=None, auth=None, translator=None):
             port = self.server.server_port
             hosts = {f'127.0.0.1:{port}', f'localhost:{port}'}
             if self.headers.get('Host') not in hosts:
-                self.json_response({'error': 'Host no permitido. Usá la dirección localhost indicada en la terminal.'}, 403)
+                self.json_response({'error': 'Host not allowed. Use the localhost address shown in the terminal.'}, 403)
                 return False
             origin = self.headers.get('Origin')
             if origin and origin not in {'http://' + host for host in hosts}:
-                self.json_response({'error': 'Origen no permitido.'}, 403)
+                self.json_response({'error': 'Origin not allowed.'}, 403)
                 return False
-            # Una redirección OAuth mantiene cross-site hasta llegar a la página
-            # final. Se puede abrir el documento raíz sin habilitar API ni recursos.
+            # An OAuth redirect remains cross-site until reaching the final
+            # page. Allow the root document without enabling API or asset access.
             document_navigation = (
                 self.command == 'GET'
                 and urlsplit(self.path).path == '/'
@@ -84,28 +84,28 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                 and self.headers.get('Sec-Fetch-Dest') == 'document'
             )
             if self.headers.get('Sec-Fetch-Site') == 'cross-site' and not document_navigation:
-                self.json_response({'error': 'Solicitud externa bloqueada.'}, 403)
+                self.json_response({'error': 'External request blocked.'}, 403)
                 return False
             return True
 
         def do_GET(self):
             path = urlsplit(self.path).path
             if path == '/auth/callback':
-                # La redirección OAuth llega desde otro sitio; state/nonce/PKCE reemplazan
-                # la comprobación de origen para esta única ruta y el Host sigue restringido.
+                # The OAuth redirect comes from another site; state/nonce/PKCE replace
+                # the origin check for this route alone; Host remains restricted.
                 if self.headers.get('Host') != f'127.0.0.1:{self.server.server_port}':
-                    self.json_response({'error': 'Callback local inválido.'}, 403)
+                    self.json_response({'error': 'Invalid local callback.'}, 403)
                     return
                 if not operation_lock.acquire(blocking=False):
-                    self.json_response({'error': 'Esperá a que termine la operación e iniciá sesión otra vez.'}, 409)
+                    self.json_response({'error': 'Wait for the operation to finish and sign in again.'}, 409)
                     return
                 try:
                     query = parse_qs(urlsplit(self.path).query)
                     if any(len(values) != 1 for values in query.values()):
-                        raise ReviewError('Callback OAuth ambiguo.')
+                        raise ReviewError('Ambiguous OAuth callback.')
                     auth.complete({k: v[0] for k, v in query.items()})
                 except (ReviewError, ValueError, TypeError, KeyError):
-                    auth.last_error = 'No se pudo completar el inicio de sesión con ChatGPT. Volvé a conectar tu cuenta.'
+                    auth.last_error = 'Could not complete ChatGPT sign-in. Reconnect your account.'
                 finally:
                     operation_lock.release()
                 self.respond(303, b'', extra={'Location': '/'})
@@ -113,12 +113,12 @@ def make_handler(controller, connections=None, auth=None, translator=None):
             if not self.trusted():
                 return
             path = urlsplit(self.path).path
-            files = {'/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+            files = {'/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/i18n.js': ('i18n.js', 'text/javascript; charset=utf-8'), '/translations.json': ('translations.json', 'application/json; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
             if path == '/api/connections':
                 self.json_response({'config': connections.status(), 'chatgpt': auth.status(), 'demo': demo})
                 return
             if path in ('/api/languages', '/api/models', '/api/project-status'):
-                # Una consulta de opciones no debe bloquear la revisión local.
+                # An options lookup must not block local review.
                 with catalog_lock:
                     try:
                         query = parse_qs(urlsplit(self.path).query)
@@ -132,9 +132,9 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                             return
                         if path == '/api/languages':
                             if not isinstance(controller, Workspace):
-                                raise ReviewError('Se requiere una sesión de trabajo.')
+                                raise ReviewError('A workspace session is required.')
                             if demo:
-                                result = [{'code': 'es_419', 'name': 'Español latinoamericano (demo)', 'total': 4, 'translated': 1}]
+                                result = [{'code': 'es_419', 'name': 'Latin American Spanish (demo)', 'total': 4, 'translated': 1}]
                             else:
                                 client = controller.client
                                 if isinstance(client, Client):
@@ -157,18 +157,20 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                     elif cached_state is not None:
                         self.json_response(cached_state)
                     else:
-                        self.json_response({'error': 'Hay una operación en curso. Esperá a que termine.'}, 409)
+                        self.json_response({'error': 'An operation is in progress. Wait for it to finish.'}, 409)
                 except (ReviewError, OSError) as exc:
                     self.json_response({'error': str(exc)}, 400)
+            elif path in ('/USER_GUIDE.md', '/USER_GUIDE.es.md'):
+                self.respond(200, (ROOT.parent / path[1:]).read_bytes(), 'text/plain; charset=utf-8')
             elif path in files:
                 name, kind = files[path]
                 self.respond(200, (ROOT / 'static' / name).read_bytes(), kind)
             else:
-                self.json_response({'error': 'Recurso inexistente.'}, 404)
+                self.json_response({'error': 'Resource not found.'}, 404)
 
         def do_POST(self):
             if not operation_lock.acquire(blocking=False):
-                self.json_response({'error': 'Hay una operación en curso. Esperá a que termine.'}, 409)
+                self.json_response({'error': 'An operation is in progress. Wait for it to finish.'}, 409)
                 return
             try:
                 self.handle_post()
@@ -197,7 +199,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                         connected = False
 
             try:
-                emit({'stage': 0, 'total': 7, 'message': 'Iniciando sincronización'})
+                emit({'stage': 0, 'total': 7, 'message': 'Starting synchronization'})
                 if not translate_only:
                     controller.sync(component, progress=emit, language=language)
                 if (translate_only or provider != 'manual') and controller.work and controller.work['entries']:
@@ -207,9 +209,9 @@ def make_handler(controller, connections=None, auth=None, translator=None):
             except (ReviewError, ValueError, KeyError, TypeError) as exc:
                 emit({'error': str(exc), 'recovery': snapshot()})
             except OSError:
-                emit({'error': 'No se pudo guardar la sesión. Revisá permisos y espacio disponible.'})
+                emit({'error': 'Could not save the session. Check permissions and available disk space.'})
             except Exception:
-                emit({'error': 'Error interno al sincronizar. Las sesiones anteriores se conservan.'})
+                emit({'error': 'Internal synchronization error. Previous sessions are preserved.'})
             finally:
                 controller.client.progress = None
 
@@ -217,15 +219,15 @@ def make_handler(controller, connections=None, auth=None, translator=None):
             if not self.trusted():
                 return
             if self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
-                self.json_response({'error': 'Se requiere application/json.'}, 415)
+                self.json_response({'error': 'application/json is required.'}, 415)
                 return
             try:
                 length = int(self.headers.get('Content-Length', 0))
                 if not 0 < length <= 8 * 1024 * 1024:
-                    raise ReviewError('Solicitud vacía o demasiado grande (máximo 8 MB).')
+                    raise ReviewError('Empty or oversized request (8 MB maximum).')
                 data = json.loads(self.rfile.read(length))
                 if not isinstance(data, dict):
-                    raise ReviewError('Solicitud inválida.')
+                    raise ReviewError('Invalid request.')
                 path = urlsplit(self.path).path
                 if path == '/api/connections':
                     connections.configure(data.get('values', {}))
@@ -233,7 +235,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                     return
                 if path in ('/api/chatgpt/start', '/api/chatgpt/select', '/api/chatgpt/disconnect'):
                     if demo:
-                        raise ReviewError('La demo no usa cuentas reales.')
+                        raise ReviewError('The demo does not use real accounts.')
                     if path.endswith('/start'):
                         self.json_response({'url': auth.start(self.server.server_port, data.get('account_id'))})
                     elif path.endswith('/select'):
@@ -245,7 +247,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                     return
                 if path in ('/api/sync', '/api/open', '/api/load-proposals', '/api/generate'):
                     if not isinstance(controller, Workspace):
-                        raise ReviewError('Esta operación requiere una sesión de trabajo.')
+                        raise ReviewError('This operation requires a workspace session.')
                     controller.assert_session(data)
                     if path == '/api/sync':
                         self.stream_sync(data.get('component', 'locales'), data.get('language', 'es_419'), data.get('provider', 'manual'), data.get('model', ''))
@@ -271,24 +273,24 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                 elif path == '/api/recent':
                     text = data.get('text')
                     if text is not None and not isinstance(text, str):
-                        raise ReviewError('El archivo debe ser texto UTF-8.')
+                        raise ReviewError('The file must be UTF-8 text.')
                     review.set_recent(text, data['revision'])
                     self.json_response(snapshot())
                 elif path == '/api/export':
                     if isinstance(controller, Workspace) and controller.work['entries'] and not snapshot()['workspace']['ready']:
-                        raise ReviewError('Cargá las propuestas antes de exportar esta sesión.')
+                        raise ReviewError('Load the proposals before exporting this session.')
                     options = {'mode': data.get('mode', 'full')}
                     result = review.export(data['revision'], data.get('confirm_pending') is True, data.get('confirm_warnings') is True, **options)
                     self.json_response(result)
                 else:
-                    self.json_response({'error': 'Recurso inexistente.'}, 404)
+                    self.json_response({'error': 'Resource not found.'}, 404)
             except (ReviewError, ValueError, KeyError, TypeError) as exc:
                 self.json_response({'error': str(exc)}, 400)
             except OSError:
-                self.json_response({'error': 'No se pudo guardar el archivo. Revisá permisos y espacio disponible; la decisión no se confirmó.'}, 500)
+                self.json_response({'error': 'Could not save the file. Check permissions and available disk space; the decision was not confirmed.'}, 500)
 
         def log_message(self, fmt, *args):
-            # No registrar cuerpos, traducciones ni decisiones en la terminal.
+            # Do not log bodies, translations or decisions in the terminal.
             pass
 
     return Handler
@@ -297,8 +299,8 @@ def make_handler(controller, connections=None, auth=None, translator=None):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('--simulate', action='store_true', help='Descargar una copia real y vaciar tres entradas solo en una sesión de prueba separada.')
-    group.add_argument('--demo', action='store_true', help='Probar sin red ni token, con datos y propuestas ficticios.')
+    group.add_argument('--simulate', action='store_true', help='Download a real copy and clear three entries in a separate test session only.')
+    group.add_argument('--demo', action='store_true', help='Try fictional data and proposals without network access or a token.')
     parser.add_argument('--port', type=int, default=None)
     parser.add_argument('--data-dir', type=Path, default=None)
     args = parser.parse_args()
@@ -306,32 +308,32 @@ def main():
         args.port = 8766 if args.demo else 8767 if args.simulate else 8765
     args.data_dir = args.data_dir or ROOT.parent / ('data/demo' if args.demo else 'data/simulation' if args.simulate else 'data')
     if (args.demo or args.simulate) and args.data_dir.resolve() == (ROOT.parent / 'data').resolve():
-        parser.error('La demo necesita una carpeta distinta de data para separar las sesiones reales.')
+        parser.error('Test modes need a folder separate from data to keep real sessions apart.')
     if not 1 <= args.port <= 65535:
-        parser.error('El puerto debe estar entre 1 y 65535.')
+        parser.error('The port must be between 1 and 65535.')
     args.data_dir.mkdir(parents=True, exist_ok=True)
-    # Impide que dos servidores sobrescriban el mismo progreso.
+    # Prevent two servers from overwriting the same progress.
     with (args.data_dir / '.lock').open('a') as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
-            sys.exit('Ya hay otra instancia usando esta carpeta de datos.')
+            sys.exit('Another instance is already using this data folder.')
         from demo import DemoClient
         from simulation import SimulationClient
         workspace = Workspace(args.data_dir, client=DemoClient() if args.demo else SimulationClient(ROOT.parent / '.env') if args.simulate else None)
         if args.simulate:
-            print('SIMULACIÓN: copias locales con huecos de prueba. No subir exportaciones.', flush=True)
+            print('SIMULATION: local copies with test gaps. Do not upload exports.', flush=True)
         if args.demo:
-            print('DEMO: datos ficticios, sin conexión a Weblate. No subir exportaciones.', flush=True)
+            print('DEMO: fictional data, no Weblate connection. Do not upload exports.', flush=True)
         with ThreadingHTTPServer(('127.0.0.1', args.port), make_handler(workspace)) as server:
             server.timeout = 1
-            print(f'Revisión local: http://127.0.0.1:{args.port}', flush=True)
-            print(f'Sesiones y exportaciones: {args.data_dir.resolve()}', flush=True)
-            print('Para detener: Ctrl+C. Las decisiones guardadas se conservan.', flush=True)
+            print(f'Local review: http://127.0.0.1:{args.port}', flush=True)
+            print(f'Sessions and exports: {args.data_dir.resolve()}', flush=True)
+            print('To stop: Ctrl+C. Saved decisions are preserved.', flush=True)
             try:
                 server.serve_forever()
             except KeyboardInterrupt:
-                print('\nServidor detenido.')
+                print('\nServer stopped.')
 
 
 if __name__ == '__main__':

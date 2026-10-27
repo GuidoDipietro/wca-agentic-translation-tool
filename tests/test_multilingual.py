@@ -78,7 +78,7 @@ class MultilingualTests(unittest.TestCase):
         self.assertEqual(list(data[root]['cubes']),['one','other'])
         english,target,mapping=convert_units(units,native,'eu')
         self.assertEqual(len(Catalog(target).entries),3)
-        self.assertIn('no reemplazar',native)
+        self.assertIn('do not replace',native)
 
     def test_reconstruction_rejects_ambiguous_contexts_and_plural_counts(self):
         unit={'context':'title','source':['Title'],'target':['Titre']}

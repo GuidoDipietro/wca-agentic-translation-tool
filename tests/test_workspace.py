@@ -43,7 +43,7 @@ class WorkspaceTests(unittest.TestCase):
         return payload
 
     def test_first_sync_at_100_percent_has_no_work(self):
-        # El primer mensaje del fixture tiene fuzzy: quitarlo para simular 100% revisado.
+        # The first fixture message is fuzzy: remove the flag to simulate 100% reviewed.
         text=fixture().replace('#, fuzzy\n','')
         result=self.sync(downloads(text,text))
         self.assertEqual(result['workspace']['candidate_count'],0)
@@ -59,7 +59,7 @@ class WorkspaceTests(unittest.TestCase):
         self.assertEqual(state['workspace']['candidate_count'],1)
         prompt=state['workspace']['prompt']
         self.assertIn('proposals.json',prompt)
-        self.assertIn('No leas .env',prompt)
+        self.assertIn('Do not read .env',prompt)
         self.assertNotIn('super-secret-test',json.dumps(state))
         self.assertTrue(state['workspace']['token_configured'])
 
@@ -175,7 +175,7 @@ class WorkspaceTests(unittest.TestCase):
         self.sync(data);self.proposals(lambda p:p['entries'][0].update(target=['Buenas %s']));self.workspace.load_proposals()
         r=self.workspace.review;r.decide(r.changed[0],{'status':'accepted'},0)
         result=r.export(1)
-        self.assertTrue(any('prohibido' in item['message'] for item in result['warnings']))
+        self.assertTrue(any('forbidden' in item['message'] for item in result['warnings']))
         self.assertFalse(result['ok'])
 
     def test_modified_snapshot_rejected(self):
@@ -232,7 +232,7 @@ class ClientTests(unittest.TestCase):
     def test_changed_remote_revision_rejected(self):
         self.client.metadata=Mock(side_effect=[{'revision':'a'},{'revision':'b'},{'revision':'changed'},{'revision':'b'}]*2)
         self.client.get=Mock(return_value=fixture())
-        with self.assertRaisesRegex(ReviewError,'dos descargas'):self.client.download()
+        with self.assertRaisesRegex(ReviewError,'both downloads'):self.client.download()
         self.assertEqual(self.client.metadata.call_count,8)
         self.assertEqual(self.client.get.call_count,4)
 
@@ -244,7 +244,7 @@ class ClientTests(unittest.TestCase):
         result=self.client.download()
         self.assertEqual(result['target'],fresh)
         self.assertEqual(result['metadata']['en']['revision'],'changed')
-        self.assertTrue(any('Reintentando' in e['message'] for e in events))
+        self.assertTrue(any('Retrying' in e['message'] for e in events))
         self.assertEqual(self.client.get.call_count,5)
 
     def test_permission_failure_is_not_retried_as_a_revision_change(self):
@@ -274,7 +274,7 @@ class ClientTests(unittest.TestCase):
 
     def test_project_status_rejects_external_pagination(self):
         self.client.get=Mock(return_value=json.dumps({'results':[],'next':'https://other.example/api/stats'}))
-        with self.assertRaisesRegex(ReviewError,'fuera del servidor'):self.client.project_status('es_419')
+        with self.assertRaisesRegex(ReviewError,'outside the allowed server'):self.client.project_status('es_419')
         self.assertEqual(self.client.get.call_count,1)
 
     def test_english_export_403_uses_paginated_source_units(self):
@@ -289,7 +289,7 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(len(english.entries),2)
         self.assertEqual(english.entries[0].occurrences,[('source.md','7')])
         self.assertEqual(forms(english.entries[1]),['One cube','Many cubes'])
-        self.assertTrue(any('unidades fuente' in text for text in result['warnings']))
+        self.assertTrue(any('source units' in text for text in result['warnings']))
 
     def test_other_english_export_errors_are_not_hidden(self):
         self.client.metadata=Mock(return_value={'revision':'a'})
@@ -303,8 +303,8 @@ class ClientTests(unittest.TestCase):
         self.client.get=Mock(side_effect=[WeblateHTTPError(403,'/api/file/','No permitido'),json.dumps(units),ReviewError('No glossary')])
         result=self.client.download()
         self.assertEqual(len(Catalog(result['target']).entries),2)
-        self.assertIn('reconstruyó',result['warnings'][0])
-        self.assertIn('no reemplazar',result['native_yaml'])
+        self.assertIn('reconstructed',result['warnings'][0])
+        self.assertIn('do not replace',result['native_yaml'])
 
     def test_locales_fallback_does_not_ignore_auth_or_units_permissions(self):
         self.client.component='locales';self.client.language='eu'

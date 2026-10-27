@@ -82,7 +82,7 @@ class AIWorkflowTests(unittest.TestCase):
 
     def test_stream_must_complete_before_proposals_are_accepted(self):
         events=[{'type':'response.output_text.delta','delta':'{"entries":[]}'},{'type':'response.failed'}]
-        # El proveedor consume SSE línea por línea, sin usar una respuesta truncada.
+        # The provider consumes SSE line by line without using a truncated response.
         response=Mock();response.__enter__=Mock(return_value=iter([line for e in events for line in [('data: '+json.dumps(e)+'\n').encode(),b'\n']]))
         response.__exit__=Mock(return_value=False)
         config=Mock();config.get.return_value='private-test-key'

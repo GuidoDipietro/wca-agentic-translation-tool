@@ -1,4 +1,4 @@
-"""Adaptación Ruby YAML ↔ revisión interna PO. La salida conserva el YAML nativo."""
+"""Ruby YAML ↔ internal PO review adapter. Output preserves native YAML."""
 import copy
 import io
 import json
@@ -27,14 +27,14 @@ def yaml_load(text, expected_language='es_419', aliases=()):
     try:
         data = parser.load(text)
         if not isinstance(data, dict) or len(data) != 1:
-            raise ValueError('Se requiere una raíz de idioma')
+            raise ValueError('A language root is required')
         language = next(iter(data))
         allowed = {language_code(expected_language).lower()} | {str(alias).replace('-', '_').lower() for alias in aliases}
         if language_code(str(language)).lower() not in allowed or not isinstance(data[language], dict):
             raise ValueError('Idioma incorrecto')
         return parser, data, language
     except Exception as exc:
-        raise ReviewError(f'YAML de {expected_language} inválido, con claves duplicadas o idioma incorrecto.') from None
+        raise ReviewError(f'Invalid {expected_language} YAML, duplicate keys or incorrect language.') from None
 
 
 def lookup(tree, path):
@@ -56,7 +56,7 @@ def assign(tree, path, value):
         last = i == len(path) - 1
         if isinstance(tree, list):
             if not part.isdigit() or int(part) >= len(tree):
-                raise ReviewError('No se puede añadir una traducción a un índice YAML inexistente.')
+                raise ReviewError('Cannot add a translation to a nonexistent YAML index.')
             if last:
                 tree[int(part)] = value
             else:
@@ -70,46 +70,46 @@ def assign(tree, path, value):
                     tree[part] = CommentedMap()
                 tree = tree[part]
         else:
-            raise ReviewError('La ruta de la traducción colisiona con un valor YAML existente.')
+            raise ReviewError('The translation path conflicts with an existing YAML value.')
 
 
 def yaml_values(tree, item):
     value = lookup(tree, item['path'])
     if item['plural_forms']:
         if value is not None and not isinstance(value, dict):
-            raise ReviewError('Una entrada plural YAML no es un mapa.')
+            raise ReviewError('A YAML plural entry is not a mapping.')
         values = [(value or {}).get(name, '') for name in item['plural_forms']]
     else:
         values = ['' if value is None else value]
     if not all(isinstance(v, str) for v in values):
-        raise ReviewError('Una traducción YAML contiene valores que no son texto.')
+        raise ReviewError('A YAML translation contains non-string values.')
     return list(map(str, values))
 
 
 def yaml_from_units(units, language, filename='', aliases=()):
-    """Archivo de importación por contextos; no sustituye el archivo del repositorio.
+    """Context-based import file; does not replace the repository file.
 
-    Las rutas numéricas siguen siendo claves: la API no informa si eran listas.
-    Weblate fusiona las traducciones por contexto al importar este archivo.
+    Numeric paths remain keys: the API does not report whether they were lists.
+    Weblate merges translations by context when importing this file.
     """
     code = language_code(language)
     root = Path(filename).stem if filename else code
     allowed = {code.lower()} | {str(alias).replace('-', '_').lower() for alias in aliases}
     if language_code(root).lower() not in allowed:
-        raise ReviewError('El nombre del archivo no corresponde al idioma seleccionado.')
+        raise ReviewError('The filename does not match the selected language.')
     number = max((len(u.get('target', [])) for u in units if len(u.get('source', [])) > 1), default=None)
     names = plural_names(code, number=number)
     tree, seen = CommentedMap(), set()
     for unit in units:
         context, source, values = unit.get('context'), unit.get('source'), unit.get('target')
         if not isinstance(context, str) or not context or not isinstance(source, list) or len(source) not in (1, 2):
-            raise ReviewError('Una unidad no permite reconstruir su contexto YAML.')
+            raise ReviewError('A unit does not allow its YAML context to be reconstructed.')
         path = tuple(context.split('->'))
         if any(not part for part in path) or path in seen or any(path[:i] in seen for i in range(1, len(path))) or any(old[:len(path)] == path for old in seen):
             raise ReviewError('Hay contextos duplicados o incompatibles en las unidades YAML.')
         seen.add(path)
         if not isinstance(values, list) or len(values) != (len(names) if len(source) == 2 else 1) or not all(isinstance(v, str) for v in values):
-            raise ReviewError('Las unidades no permiten identificar todas las formas del idioma.')
+            raise ReviewError('The units do not identify all forms for this language.')
         value = CommentedMap(zip(names, values)) if len(source) == 2 else values[0]
         assign(tree, path, value)
     data = CommentedMap({root: tree})
@@ -117,7 +117,7 @@ def yaml_from_units(units, language, filename='', aliases=()):
     parser.width = 4096
     stream = io.StringIO()
     parser.dump(data, stream)
-    native = '# Reconstruido desde unidades de Weblate: importar como traducciones; no reemplazar el archivo del repositorio.\n' + stream.getvalue()
+    native = '# Reconstructed from Weblate units: import as translations; do not replace the repository file.\n' + stream.getvalue()
     yaml_load(native, code, aliases)
     return native
 
@@ -143,7 +143,7 @@ def convert_units(units, native, language='es_419', aliases=()):
         source, translations = unit.get('source'), unit.get('target')
         context = unit.get('context')
         if not isinstance(context, str) or not context or not isinstance(source, list) or not 1 <= len(source) <= 2 or not all(isinstance(v, str) for v in source):
-            raise ReviewError('Una unidad Locales tiene contexto o fuente no admitidos.')
+            raise ReviewError('A Locales unit has an unsupported context or source.')
         entry = polib.POEntry(msgctxt=context, msgid=source[0], comment=unit.get('note') or '')
         plural = len(source) == 2
         if plural:
@@ -153,11 +153,11 @@ def convert_units(units, native, language='es_419', aliases=()):
             entry.msgstr = source[0]
         entry_key = key(entry)
         if entry_key in mapping:
-            raise ReviewError('Claves Locales duplicadas en la API.')
+            raise ReviewError('Duplicate Locales keys in the API.')
         item = {'path': context.split('->'), 'plural_forms': names if plural else [], 'source_forms': [source[0] if name == 'one' else source[-1] for name in names] if plural else source}
         values = yaml_values(tree, item)
         if translations != values:
-            raise ReviewError(f'La API y el YAML no coinciden para {context}. Volvé a sincronizar.')
+            raise ReviewError(f'The API and YAML do not match for {context}. Sync again.')
         mapping[entry_key] = item
         english.append(entry)
         translated = copy.deepcopy(entry)
@@ -197,18 +197,18 @@ class LocalesReview(Review):
 
     def export(self, revision, confirm_pending=False, confirm_warnings=False, mode='full'):
         if mode not in ('full', 'suggestions', 'changes'):
-            raise ReviewError('Modo de exportación YAML inválido.')
+            raise ReviewError('Invalid YAML export mode.')
         self.check_revision(revision)
         output, errors, warnings = self.prepare_export()
         counts = self.snapshot()['counts']
         if mode == 'changes' and not self.approved_keys() and not errors:
-            errors.append(self.issue('no_changes', None, 'No hay cambios aprobados para descargar.'))
+            errors.append(self.issue('no_changes', None, 'There are no approved changes to download.'))
         if errors:
             return {'ok': False, 'errors': errors, 'warnings': warnings, 'dismissed': self.dismissed_issues, 'counts': counts}
         if (counts['pending'] and not confirm_pending) or (warnings and not confirm_warnings):
             return {'ok': False, 'errors': [], 'warnings': warnings, 'counts': counts, 'dismissed': self.dismissed_issues, 'confirmation_required': True}
         if self.native_path.read_text(encoding='utf-8') != self.native_text:
-            raise ReviewError('El YAML de base cambió mientras revisabas.')
+            raise ReviewError('The base YAML changed during review.')
         base = self.document.get('native_recent') or self.native_text
         parser, data, lang = yaml_load(base, self.language, self.aliases)
         before = copy.deepcopy(data)
@@ -233,8 +233,8 @@ class LocalesReview(Review):
             native = stream.getvalue()
             _, parsed, _ = yaml_load(native, self.language, self.aliases)
             if parsed != data:
-                raise ReviewError('La exportación YAML alteró valores al serializar.')
-            # Comprobar todo el árbol contra una copia con solo los cambios autorizados.
+                raise ReviewError('YAML export changed values during serialization.')
+            # Check the entire tree against a copy containing only authorized changes.
             expected = detached(before)
             for entry_key in self.changed:
                 item = self.mapping[entry_key]
@@ -245,7 +245,7 @@ class LocalesReview(Review):
                 for path, value in zip(paths, values):
                     assign(expected[lang], path, value)
             if parsed != expected:
-                raise ReviewError('La exportación YAML alteró otras claves (por ejemplo por alias).')
+                raise ReviewError('YAML export changed other keys (for example through aliases).')
         else:
             native = base
         if mode in ('suggestions', 'changes'):
@@ -255,8 +255,8 @@ class LocalesReview(Review):
                 values = forms(catalog.by_key[entry_key])
                 paths = [item['path'] + [name] for name in item['plural_forms']] if item['plural_forms'] else [item['path']]
                 for path, value in zip(paths, values):
-                    # Las claves numéricas de mapas no son índices de listas. Si sí
-                    # es una lista, conservarla completa evita cambiar posiciones.
+                    # Numeric mapping keys are not list indices. For actual
+                    # lists, preserving the complete list avoids shifting positions.
                     tree = data[lang]
                     for index, part in enumerate(path):
                         if isinstance(tree, list):
@@ -271,14 +271,14 @@ class LocalesReview(Review):
             _, parsed, _ = yaml_load(native, self.language, self.aliases)
             for entry_key in self.approved_keys():
                 if yaml_values(parsed[lang], self.mapping[entry_key]) != forms(catalog.by_key[entry_key]):
-                    raise ReviewError('La exportación parcial alteró una traducción aprobada.')
-        name = f'{lang}_suggestions.yml' if mode == 'suggestions' else f'{lang}_reviewed.yml'
+                    raise ReviewError('Partial export changed an approved translation.')
+        name = lang.replace('_', '-') + ('_locales_suggestions.yaml' if mode == 'suggestions' else '_locales_reviewed.yaml')
         if getattr(self, 'demo', False):
             name = 'DEMO_' + name
-            native = '# DEMO: datos ficticios. No subir a Weblate.\n' + native
+            native = '# DEMO: fictional data. Do not upload to Weblate.\n' + native
         elif getattr(self, 'simulation', False):
             name = 'SIMULATION_' + name
-            native = '# SIMULACIÓN: copia de prueba. No subir a Weblate.\n' + native
+            native = '# SIMULATION: test copy. Do not upload to Weblate.\n' + native
         path = self.data_dir / name
         atomic_write(path, native)
         summary = {'ok': True, 'counts': counts, 'warnings': warnings, 'component': 'locales', 'mode': mode, 'dismissed': self.dismissed_issues, 'revision': revision, 'sha256': digest(native)}

@@ -1,7 +1,7 @@
-"""Reconocimiento explícito de variantes; nunca inventa traducciones preferidas."""
+"""Explicit variant matching; never invent preferred translations."""
 import re
 
-# Solo equivalencias gramaticales revisables. No se aplica stemming ni traducción.
+# Only reviewable grammatical equivalents. No stemming or translation.
 VARIANTS = {
     'en': (
         ('delegate', 'delegates'), ('competitor', 'competitors'),

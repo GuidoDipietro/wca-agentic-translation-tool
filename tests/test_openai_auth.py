@@ -105,5 +105,5 @@ class ChatGPTAuthTests(unittest.TestCase):
         self.assertNotIn('access_token',self.auth.data['accounts'][account])
         self.assertNotIn('refresh_token',self.auth.data['accounts'][account])
         self.assertFalse(self.auth.status()['accounts'][0]['connected'])
-        self.assertIn('no se pudo confirmar',self.auth.last_error.lower())
+        self.assertIn('could not be confirmed',self.auth.last_error.lower())
         with self.assertRaises(ReviewError):self.auth.access_token()

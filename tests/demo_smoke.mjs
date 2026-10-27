@@ -34,5 +34,5 @@ try{
  assert(suggestions.ok && !suggestions.content.includes('Ya traducido'),'Suggestions omit untouched entries');
  await send('Page.navigate',{url:base});await wait("typeof state!=='undefined' && state && state.counts.edited===1 && state.counts.accepted===2");
  assert(errors.length===0,'Browser errors: '+errors.join('; '));
- console.log('OK demo: etapas en vivo, horas 24 h, revisión, edición, plurales, exportaciones y persistencia.');
+ console.log('OK demo: live stages, 24-hour times, review, editing, plurals, exports and persistence.');
 }finally{await fetch(`${debug}/json/close/${tab.id}`);ws.close();}

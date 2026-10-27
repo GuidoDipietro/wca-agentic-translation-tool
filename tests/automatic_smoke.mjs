@@ -22,24 +22,24 @@ try {
  await evaluate("document.getElementById('language').value='fr'");
  await wait("document.getElementById('model').value==='test-model'");
  await click('sync');await wait("!syncing && state.workspace.language==='fr' && state.workspace.ready && state.counts.pending===2");
- assert(await evaluate("document.getElementById('sync-current').textContent.includes('ninguna aprobada')"),'Generation leaves proposals pending');
+ assert(await evaluate("document.getElementById('sync-current').textContent.includes('none approved')"),'Generation leaves proposals pending');
  assert(await evaluate("current().proposed[0]==='Bonjour, %{name}'"),'AI proposal is shown');
  await wait('!catalogBusy()');
  await evaluate("window.originalCatalogApi=api;api=async(path,...args)=>path.startsWith('/api/languages?component=payload')?new Promise(resolve=>{window.releaseLookup=()=>resolve({items:[{code:'fr',name:'French',total:400,translated:13}]});}):window.originalCatalogApi(path,...args);document.getElementById('component').value='payload';document.getElementById('component').dispatchEvent(new Event('change'));true");
  await wait("typeof window.releaseLookup==='function'");
  assert(await evaluate("['sync','generate','component','language','model'].every(id=>document.getElementById(id).disabled) && document.getElementById('catalog-status').classList.contains('loading') && document.getElementById('workspace-panel').getAttribute('aria-busy')==='true'"),'Catalog loading visibly locks sync, translation and selectors');
- assert(await evaluate("document.getElementById('language').selectedOptions[0].textContent.includes('Cargando') && !document.getElementById('language').textContent.includes('pendientes ·')"),'Old component counts are replaced by a loading placeholder');
+ assert(await evaluate("document.getElementById('language').selectedOptions[0].textContent.includes('Loading') && !document.getElementById('language').textContent.includes('pending ·')"),'Old component counts are replaced by a loading placeholder');
  await click('accept');await wait('state.counts.accepted===1 && saving===0');
  assert(await evaluate("document.getElementById('sync').disabled && document.getElementById('error').hidden"),'Review remains usable and does not unlock sync during loading');
  await evaluate("window.releaseLookup();true");
  await wait("!catalogBusy() && !document.getElementById('sync').disabled");
- assert(await evaluate("document.getElementById('language').selectedOptions[0].textContent.includes('387 pendientes') && !document.getElementById('catalog-status').classList.contains('loading')"),'New counts appear before sync unlocks');
- await evaluate("api=async(path,...args)=>{if(path.startsWith('/api/languages?component=payload'))throw new Error('Fallo de catálogo simulado');return window.originalCatalogApi(path,...args);};ensureLanguages(true);true");
- await wait("!catalogBusy() && document.getElementById('catalog-status').textContent.includes('Fallo de catálogo simulado')");
- assert(await evaluate("document.getElementById('sync').disabled && !document.getElementById('language').disabled && !document.getElementById('component').disabled && document.getElementById('language').textContent.includes('reintentá')"),'Failed catalog clears busy state and allows retry without using stale counts');
+ assert(await evaluate("document.getElementById('language').selectedOptions[0].textContent.includes('387 pending') && !document.getElementById('catalog-status').classList.contains('loading')"),'New counts appear before sync unlocks');
+ await evaluate("api=async(path,...args)=>{if(path.startsWith('/api/languages?component=payload'))throw new Error('Simulated catalog failure');return window.originalCatalogApi(path,...args);};ensureLanguages(true);true");
+ await wait("!catalogBusy() && document.getElementById('catalog-status').textContent.includes('Simulated catalog failure')");
+ assert(await evaluate("document.getElementById('sync').disabled && !document.getElementById('language').disabled && !document.getElementById('component').disabled && document.getElementById('language').textContent.includes('retry')"),'Failed catalog clears busy state and allows retry without using stale counts');
  await evaluate("api=async(path,...args)=>path.startsWith('/api/languages?component=payload')?{items:[{code:'fr',name:'French',total:400,translated:13}]}:window.originalCatalogApi(path,...args);document.getElementById('language').dispatchEvent(new Event('focus'));true");
  await wait("!catalogBusy() && !document.getElementById('sync').disabled");
- assert(await evaluate("!document.getElementById('catalog-status').textContent.includes('Fallo de catálogo simulado')"),'Successful retry clears the catalog error');
+ assert(await evaluate("!document.getElementById('catalog-status').textContent.includes('Simulated catalog failure')"),'Successful retry clears the catalog error');
  await evaluate("api=window.originalCatalogApi;document.getElementById('component').value='locales';document.getElementById('component').dispatchEvent(new Event('change'));true");
  await wait('!catalogBusy() && !document.getElementById("sync").disabled');
  assert(await evaluate("current().plural_forms.join(',')==='one,many,other'"),'French plural forms are separate');
@@ -48,16 +48,16 @@ try {
  await wait('!dirty && saving===0');await click('accept');
  await wait('state.counts.edited===1 && saving===0');
  const exported=await evaluate("api('/api/export',{revision:state.revision,mode:'changes'})");
- assert(exported.ok && exported.filename==='fr_reviewed.yml' && exported.content.includes('Un cube révisé') && !exported.content.includes('Déjà traduit'),'Native export contains user decisions');
+ assert(exported.ok && exported.filename==='fr_locales_reviewed.yaml' && exported.content.includes('Un cube révisé') && !exported.content.includes('Déjà traduit'),'Native export contains user decisions');
  assert(await evaluate("!document.getElementById('translation-mode') && !document.getElementById('load-models') && !document.getElementById('load-languages') && !document.getElementById('export-mode')"),'No redundant selectors or fetch buttons');
  await screenshot('panel');
  await click('connections-open');await wait("document.getElementById('connections-dialog').open");
- assert(await evaluate("!document.getElementById('openai-key') && document.getElementById('weblate-key').value==='' && document.getElementById('weblate-key').placeholder.includes('Token guardado') && !document.body.textContent.includes('fake-test-key')"),'Credentials are never echoed');
+ assert(await evaluate("!document.getElementById('openai-key') && document.getElementById('weblate-key').value==='' && document.getElementById('weblate-key').placeholder.includes('Token saved') && !document.body.textContent.includes('fake-test-key')"),'Credentials are never echoed');
  assert(await evaluate("document.querySelector('#connections-dialog .connection-card').querySelectorAll('button').length===1"),'ChatGPT has one account action');
  await screenshot('conexiones');
  await evaluate("document.getElementById('weblate-key').value='another-private-test-token'");await click('connections-save');
- await wait("document.getElementById('connection-message').textContent.includes('Token guardado para esta sesión')");
- assert(await evaluate("document.getElementById('weblate-key').value==='' && document.getElementById('weblate-status').textContent.includes('Token guardado') && document.getElementById('weblate-key').placeholder.includes('Token guardado')"),'Saved Weblate token is represented without echoing it');
+ await wait("document.getElementById('connection-message').textContent.includes('Token saved for this server session')");
+ assert(await evaluate("document.getElementById('weblate-key').value==='' && document.getElementById('weblate-status').textContent.includes('Token saved') && document.getElementById('weblate-key').placeholder.includes('Token saved')"),'Saved Weblate token is represented without echoing it');
  await click('connections-close');
  await evaluate("select(state.entries.find(e=>e.context==='greeting').key)");await click('edit');
  await evaluate("document.querySelector('.edit-form').value='Bonjour sans variable';document.querySelector('.edit-form').dispatchEvent(new Event('input',{bubbles:true}))");
@@ -83,7 +83,7 @@ try {
  const revisionAfterDownload=await evaluate('state.revision');
  await pressKey('a','KeyA',65);
  await wait(`current()?.context==='count' && state.revision>${revisionAfterDownload} && saving===0`);
- // También debe funcionar cuando el foco queda explícitamente sobre un botón.
+ // Also test when focus is explicitly on a button.
  await evaluate("document.getElementById('export').focus()");
  await pressKey('ArrowLeft','ArrowLeft',37);await wait("current()?.context==='greeting'");
  await pressKey('ArrowRight','ArrowRight',39);await wait("current()?.context==='count'");
@@ -103,5 +103,5 @@ try {
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
  assert(await evaluate('document.documentElement.scrollWidth<=window.innerWidth'),'Setup and review fit on mobile');
  assert(errors.length===0,'Browser errors: '+errors.join('; '));
- console.log('OK UX: listas automáticas → ChatGPT → aceptar edición → token guardado → dismiss → corregir en exportación → descarga de cambios.');
+ console.log('OK UX: automatic lists → ChatGPT → accept edit → saved token → dismiss → correct in export → download changes.');
 } finally {await fetch(`${debug}/json/close/${tab.id}`);ws.close();}

@@ -1,4 +1,4 @@
-"""Copia de una descarga real con tres huecos locales para probar generación y revisión."""
+"""Copy of a real download with three local gaps to test generation and review."""
 import io
 import json
 import copy
@@ -16,7 +16,7 @@ class SimulationClient(Client):
         target = Catalog(payload['target'])
         available = [(k, e) for k, e in target.by_key.items() if all(v.strip() for v in forms(e)) and 'fuzzy' not in e.flags]
         if not available:
-            raise ReviewError('No hay traducciones completas para crear esta simulación. Usá la sincronización normal de este idioma.')
+            raise ReviewError('No complete translations are available for this simulation. Use normal synchronization for this language.')
         selected = []
         for predicate in [lambda e: bool(e.msgid_plural), lambda e: '%{' in e.msgid or '%s' in e.msgid, lambda e: len(e.msgid.split()) >= 3]:
             match = next(((k,e) for k,e in available if k not in {x[0] for x in selected} and predicate(e)),None)
@@ -44,5 +44,5 @@ class SimulationClient(Client):
             for k, e in selected:
                 data[payload['json_mapping'][k]]['message'] = ''
             payload['native_json'] = json.dumps(data, ensure_ascii=False, indent=4) + '\n'
-        payload.setdefault('warnings',[]).append(f'SIMULACIÓN: se vaciaron {len(selected)} entradas únicamente en esta copia local. No subir sus exportaciones a Weblate.')
+        payload.setdefault('warnings',[]).append(f'SIMULATION: {len(selected)} entries were cleared in this local copy only. Do not upload its exports to Weblate.')
         return payload

@@ -39,7 +39,7 @@ class ValidationTests(unittest.TestCase):
 
     def test_preflight_does_not_parse_or_serialize_the_whole_catalog(self):
         self.decide(self.singular,'accepted')
-        with patch.object(Catalog,'read',side_effect=AssertionError('No volver a parsear')), patch.object(Catalog,'render',side_effect=AssertionError('No serializar en preflight')):
+        with patch.object(Catalog,'read',side_effect=AssertionError('Do not parse again')), patch.object(Catalog,'render',side_effect=AssertionError('Do not serialize during preflight')):
             self.assertTrue(self.report()['ok'])
         with patch.object(self.review.original,'render',wraps=self.review.original.render) as render:
             result=self.review.export(self.review.document['revision'],mode='changes',confirm_pending=True)
@@ -128,7 +128,7 @@ class ValidationTests(unittest.TestCase):
         workspace.load_proposals();review=workspace.review
         for key in review.changed:review.decide(key,{'status':'accepted'},review.document['revision'])
         result=review.export(review.document['revision'],mode='changes')
-        self.assertTrue(result['ok']);self.assertEqual(result['filename'],'es-419_reviewed.yml')
+        self.assertTrue(result['ok']);self.assertEqual(result['filename'],'es-419_locales_reviewed.yaml')
         _,data,lang=yaml_load(result['content'])
         self.assertEqual(data[lang]['events']['333'],'3x3x3')
         self.assertEqual(data[lang]['days'],['Primero','Sin tocar'])
