@@ -86,6 +86,19 @@ class ChatGPTAuthTests(unittest.TestCase):
         self.assertEqual(self.auth.data['accounts'][account]['subject'],'user-1')
         self.assertEqual(self.auth.data['accounts'][account]['access_token'],'private-access')
 
+    def test_disconnected_account_reuses_registration_after_restart(self):
+        account=self.exchange(self.begin())
+        host=self.auth.data['host_id']
+        with patch('openai_auth.http_json',return_value={}):self.auth.disconnect()
+        self.auth=ChatGPTAuth(self.path)
+        params=self.begin(account)
+        self.assertEqual(params['client_id'],'issued-client')
+        self.assertEqual(params['ext_agent_host_id'],host)
+        self.assertNotIn('agent_name_hint',params)
+        self.exchange(params)
+        self.assertEqual(len(self.auth.data['accounts']),1)
+        self.assertEqual(self.auth.data['active'],account)
+
     def test_identity_without_plan_permission_cannot_translate(self):
         self.exchange(self.begin(),scopes='openid email')
         self.assertFalse(self.auth.status()['accounts'][0]['can_translate'])

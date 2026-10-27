@@ -31,9 +31,9 @@ def yaml_load(text, expected_language='es_419', aliases=()):
         language = next(iter(data))
         allowed = {language_code(expected_language).lower()} | {str(alias).replace('-', '_').lower() for alias in aliases}
         if language_code(str(language)).lower() not in allowed or not isinstance(data[language], dict):
-            raise ValueError('Idioma incorrecto')
+            raise ValueError('Incorrect language')
         return parser, data, language
-    except Exception as exc:
+    except Exception:
         raise ReviewError(f'Invalid {expected_language} YAML, duplicate keys or incorrect language.') from None
 
 
@@ -86,6 +86,24 @@ def yaml_values(tree, item):
     return list(map(str, values))
 
 
+def same_yaml_structure(original, current):
+    """Keep existing keys and list positions; allow new remote mapping keys."""
+    if isinstance(original, dict):
+        return isinstance(current, dict) and all(
+            name in current and same_yaml_structure(value, current[name])
+            for name, value in original.items()
+        )
+    if isinstance(original, list):
+        return isinstance(current, list) and len(original) == len(current) and all(
+            same_yaml_structure(old, new) for old, new in zip(original, current)
+        )
+    if isinstance(original, str):
+        return isinstance(current, str)
+    if original is None:
+        return current is None or isinstance(current, str)
+    return type(original) is type(current)
+
+
 def yaml_from_units(units, language, filename='', aliases=()):
     """Context-based import file; does not replace the repository file.
 
@@ -106,7 +124,7 @@ def yaml_from_units(units, language, filename='', aliases=()):
             raise ReviewError('A unit does not allow its YAML context to be reconstructed.')
         path = tuple(context.split('->'))
         if any(not part for part in path) or path in seen or any(path[:i] in seen for i in range(1, len(path))) or any(old[:len(path)] == path for old in seen):
-            raise ReviewError('Hay contextos duplicados o incompatibles en las unidades YAML.')
+            raise ReviewError('The YAML units contain duplicate or incompatible contexts.')
         seen.add(path)
         if not isinstance(values, list) or len(values) != (len(names) if len(source) == 2 else 1) or not all(isinstance(v, str) for v in values):
             raise ReviewError('The units do not identify all forms for this language.')
@@ -187,6 +205,13 @@ class LocalesReview(Review):
         catalog = None
         if text is not None:
             _, data, lang = yaml_load(text, self.language, self.aliases)
+            _, original, original_lang = yaml_load(self.native_text, self.language, self.aliases)
+            if not same_yaml_structure(original[original_lang], data[lang]):
+                raise ReviewError('The recent YAML has missing keys or an incompatible structure. Sync again before comparing it.')
+            for item in self.mapping.values():
+                value = lookup(data[lang], item['path'])
+                if item['plural_forms'] and isinstance(value, dict) and set(value) - set(item['plural_forms']):
+                    raise ReviewError('The recent YAML has an incompatible plural scheme. Sync again before comparing it.')
             replacements = {k: yaml_values(data[lang], self.mapping[k]) for k in self.original.by_key}
             catalog = Catalog(self.original.render(replacements))
         doc = copy.deepcopy(self.document)

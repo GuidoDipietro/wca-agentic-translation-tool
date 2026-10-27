@@ -1,14 +1,13 @@
 """Batched proposals, corpus context and checks before human review."""
-from collections import Counter
 import json
 import re
-import time
 import urllib.error
 import urllib.request
 
 from glossary import essential, source_matches, variants
-from core import ReviewError, PLACEHOLDER, FORMAT_PLACEHOLDER, tokens, atomic_write, forms
+from core import ReviewError, PLACEHOLDER, FORMAT_PLACEHOLDER, tokens, forms
 from openai_auth import RESOURCE, NoRedirect, http_json
+from network import AI_IDLE_TIMEOUT, sse_lines
 from workspace import read_json, write_json
 
 LABELS = ['Prepare', 'Context', 'Translate', 'Validate', 'Review']
@@ -158,7 +157,7 @@ def validate_batch(workspace, batch, payload):
         references = workspace.review.form_sources.get(item['key']) or [source['source'][min(i, len(source['source']) - 1)] for i in range(len(values))]
         for reference, value in zip(references, values):
             if tokens(pattern, reference) != tokens(pattern, value):
-                raise ReviewError(f'Placeholders incorrectos en {source["context"]}.')
+                raise ReviewError(f'Incorrect placeholders in {source["context"]}.')
             if any(ord(char) < 32 and char not in '\n\r\t' for char in value):
                 raise ReviewError('AI returned invalid control characters.')
         result[item['key']] = {'key': item['key'], 'target': values, 'note': item['note']}
@@ -177,9 +176,9 @@ class OpenAITranslator:
         if provider == 'openai':
             value = self.connections.get('OPENAI_API_KEY')
             if not value:
-                raise ReviewError('Configure an OpenAI API key in Connections or .env.')
-            from weblate import checked_token
-            return checked_token(value)
+                raise ReviewError('Configure OPENAI_API_KEY for the backend API workflow, or connect ChatGPT in the interface.')
+            from configuration import checked_token
+            return checked_token(value, 'OPENAI_API_KEY')
         raise ReviewError('Choose a connected ChatGPT account or OpenAI API to generate translations.')
 
     def models(self, provider):
@@ -202,8 +201,9 @@ class OpenAITranslator:
         req = urllib.request.Request(RESOURCE + '/responses', data=compact_json(body).encode(), headers={'Authorization': 'Bearer ' + self.credential(provider), 'Content-Type': 'application/json', 'Accept': 'text/event-stream'}, method='POST')
         accumulated, completed, buffer, output = [], False, [], None
         try:
-            with urllib.request.build_opener(NoRedirect()).open(req, timeout=180) as response:
-                for raw_line in response:
+            with urllib.request.build_opener(NoRedirect()).open(req, timeout=AI_IDLE_TIMEOUT) as response:
+                received_characters = 0
+                for raw_line in sse_lines(response):
                     line = raw_line.decode('utf-8').rstrip('\r\n')
                     if line.startswith('data:'):
                         buffer.append(line[5:].lstrip())
@@ -214,9 +214,13 @@ class OpenAITranslator:
                         event = json.loads(data)
                         kind = event.get('type')
                         if kind == 'response.output_text.delta':
-                            accumulated.append(event.get('delta', ''))
+                            delta = event.get('delta', '')
+                            if not isinstance(delta, str):
+                                raise ReviewError('The AI stream contained invalid text. Validated batches are preserved.')
+                            accumulated.append(delta)
+                            received_characters += len(delta)
                             if progress:
-                                progress(sum(len(v) for v in accumulated))
+                                progress(received_characters)
                         elif kind == 'response.completed':
                             if event.get('response', {}).get('status') not in (None, 'completed'):
                                 raise ReviewError('AI did not complete the response.')
@@ -250,6 +254,8 @@ class OpenAITranslator:
                     raise InvalidTemporaryIDs('AI omitted temporary batch IDs.')
                 result = dict(result, entries=restored)
             return result
+        except ReviewError:
+            raise
         except (ValueError, TypeError):
             raise ReviewError('AI did not return valid JSON. No translations were approved.') from None
 

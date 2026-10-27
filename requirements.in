@@ -1,0 +1,5 @@
+# Direct runtime dependencies. Regenerate requirements.txt after changing this file.
+polib>=1.2.0,<2
+ruamel.yaml>=0.18.16,<0.20
+Babel>=2.17.0,<3
+PyJWT[crypto]>=2.15.1,<3

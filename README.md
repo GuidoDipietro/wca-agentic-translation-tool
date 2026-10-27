@@ -4,6 +4,8 @@ Local software for translating WCA Locales (Ruby YAML), Payload CMS (message JSO
 
 **For translators:** follow the [simple user guide](USER_GUIDE.md). [Español](README.es.md) · [Guía de uso](USER_GUIDE.es.md).
 
+MIT licensed, copyright 2026 Guido Dipietro. See [LICENSE](LICENSE).
+
 This README covers installation, data storage and development. The user guide covers the buttons to press in the application and Weblate.
 
 ## Installation and startup
@@ -12,7 +14,7 @@ Linux and Python 3.10 or later:
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m pip install --require-hashes -r requirements.txt
 .venv/bin/python run.py
 ```
 
@@ -36,11 +38,15 @@ ChatGPT uses the official local flow: PKCE, state, nonce, verified ID token sign
 
 Credentials are stored separately in `data/auth/chatgpt.json` with `0600` permissions and are never served over HTTP. Disconnecting removes local credentials and attempts remote revocation; the interface reports when revocation cannot be confirmed. Older connection records remain for compatibility, while the interface uses one active account.
 
+Reconnecting uses the saved account registration. To sign in with another account after disconnecting, open **More options** in the ChatGPT connection card and select **Use another ChatGPT account on the next sign-in**.
+
 ## Data and translation behavior
 
 Sessions are isolated by component, language and real/demo/simulation mode. They live in `data/sessions/<UTC-date>-<id>/`, with immutable references and hashes, native-format mappings, optional `glossary.tbx`, `work.json`, `PROMPT.txt`, generation progress and proposals. Review data and exports live in each session’s `review/` directory. Internal filenames `decisiones.json` and `resumen_exportacion.json` remain unchanged for compatibility. Protect authentication files when backing up `data/`.
 
 Synchronization detects missing translations, incomplete plurals and entries marked for review. Subsequent synchronizations also detect English changes by unique context. It downloads current references and preserves earlier sessions. Progress represents actual stages, not bytes or estimated time. Visible times use 24-hour format and the browser’s timezone.
+
+Pending English-change reviews retain their earlier source and translation across repeated synchronizations. An explicit review decision, a remote translation change or a remote review-flag change ends that pending reason; decisions and drafts are not copied into the new session.
 
 Generation requires an explicit interface action and never approves translations. Adaptive batches contain up to 32 entries, with an approximate 8,000-token input/output/context budget and at most 40 entries per run. An oversized entry is processed alone without truncation. Validated batches are retained for resumption; interrupted, refused or incomplete responses are rejected.
 
@@ -48,9 +54,13 @@ Requests contain temporary short IDs, requested keys, context, glossary and up t
 
 Drafts save after 500 ms without typing and require approval before export. Language codes and aliases are preserved. For Locales, Babel/CLDR, native YAML and API data identify `zero`, `one`, `two`, `few`, `many`, `other`; ambiguous plural schemes block import. Editors support automatic direction for RTL languages.
 
+If another tab changes progress while you have an unsaved draft, **Reload progress** lets you compare both versions. You can cancel, load the saved version, or explicitly save your local text as a pending draft. If the active session changed, copy the local text before loading that session; the application does not move drafts between sessions.
+
 ## Validation and exports
 
 The normal download contains accepted proposals and approved edits. Pending and rejected entries are omitted, and at least one approved change is required. Loading a recent Weblate download detects concurrent changes and uses that file as the export base. Export itself makes no Weblate requests.
+
+A recent Locales YAML must preserve existing keys, node types, list positions and the session’s plural scheme. Incompatible files require a new synchronization. Additional remote mapping keys are preserved; previously absent translation keys may remain absent or receive translations.
 
 | Component | Filename |
 | --- | --- |
@@ -98,11 +108,15 @@ Validate with the session’s command:
 
 ## Development and deployment
 
+See the [publication and follow-up checklist (Spanish)](CHECKLIST.md) for remaining work and manual integration checks.
+
 ```bash
 .venv/bin/python -m unittest discover -s tests -v
 RUN_BROWSER_TESTS=1 .venv/bin/python -m unittest discover -s tests -v
 ```
 
 Tests use fake providers/accounts, test JWTs, localhost and temporary folders, without billable AI calls. Browser tests require Chrome/Chromium and Node >=22; they do not download browsers. GitHub Actions runs Python tests on pushes and pull requests without secrets. Version code and tests, not credentials, sessions or test exports.
+
+Runtime dependencies are locked with hashes in `requirements.txt`; edit `requirements.in` and regenerate with the command at the top of the lockfile. CI covers Python 3.10/3.12, browser tests and dependency audits; Dependabot proposes weekly updates. Check these workflows on GitHub after pushing. See [SECURITY.md](SECURITY.md) for private vulnerability reporting.
 
 Public deployment requires a separate production entry point, a public origin and authorized HTTPS OAuth callback, hosted-application authorization, per-user isolation of credentials/sessions/jobs/files, durable storage, and testing with separate accounts. The local entry point `python run.py` does not provide these. References: [OpenAI hosted application requirements](https://developers.openai.com/siwc/token-sharing-open-source), [Render web services](https://render.com/docs/web-services), [persistent disks](https://render.com/docs/disks), [Vercel function runtimes](https://vercel.com/docs/functions/runtimes). WCA OAuth would require its own [registered application](https://docs.worldcubeassociation.org/knowledge_base/v0_api.html) and would not replace Weblate permissions. This repository does not publish or deploy automatically.

@@ -21,6 +21,17 @@ try {
  assert(await evaluate("document.getElementById('connection-summary').textContent.includes('ChatGPT ✓')"),'Connected account is visible');
  assert(await evaluate("location.search==='' && !document.body.textContent.includes('Solicitud externa bloqueada')"),'Callback query is removed and navigation is accepted');
  assert(await evaluate("provider()==='chatgpt'"),'Connected ChatGPT is selected');
+ // Reconnecting defaults to the saved registration; another account is explicit.
+ for(const different of [false,true]) {
+   await click('connections-open');await wait("document.getElementById('connections-dialog').open");
+   await click('chatgpt-connect');await wait("!activeAccount().connected");
+   assert(await evaluate("!document.getElementById('chatgpt-options').hidden && document.getElementById('chatgpt-status').textContent.includes('test@example.org')"),'Disconnected account remains identifiable');
+   if(different)await evaluate("document.getElementById('chatgpt-options').open=true;document.getElementById('chatgpt-new-account').checked=true");
+   await click('chatgpt-connect');
+   await wait("location.hostname==='localhost' && !!document.getElementById('provider-continue')");
+   await click('provider-continue');
+   await wait("location.hostname==='127.0.0.1' && location.pathname==='/' && typeof connectionState!=='undefined' && connectionState?.chatgpt?.active==='browser-account'");
+ }
  assert(errors.length===0,'Browser errors: '+errors.join('; '));
  console.log('OK OAuth: connect → cross-site provider → callback → main screen and connected account.');
 } finally {await fetch(`${debug}/json/close/${tab.id}`);ws.close();}

@@ -3,6 +3,7 @@ const $ = id => document.getElementById(id);
 const labels = {pending:'Pending', accepted:'Accepted', rejected:'Rejected', edited:'Edited'};
 let state, selected, editing = false, dirty = false, timer, chain = Promise.resolve(), saving = 0;
 let draftVersion = 0;
+let draftRecovery = null, reloading = false;
 let syncing=false, syncStarted=0, syncTimer, connectionState;
 let activeStageLabels, projectStatus=null, syncFailed=false;
 const syncLabels=["Remote status","Files and units","Validation","Consistency","Glossary","Local session","Ready"];
@@ -34,8 +35,8 @@ async function readSync(response) {
 
 function error(message) { lastError=message; $('error').textContent = t(message); $('error').hidden = false; }
 $('error').onclick = () => { $('error').hidden = true; };
-async function api(path, data) {
-  const response = await fetch(path, data === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...data,...(state?.workspace ? {session_id:state.workspace.active_id,workspace_revision:state.workspace.revision} : {})})});
+async function api(path, data, requestState = state) {
+  const response = await fetch(path, data === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...data,...(requestState?.workspace ? {session_id:requestState.workspace.active_id,workspace_revision:requestState.workspace.revision} : {})})});
   if(response.ok && response.headers.get('Content-Type')?.includes('application/x-ndjson'))return readSync(response);
   const result = await response.json();
   if (!response.ok) throw new Error(result.error || t("The operation could not be completed."));
@@ -177,6 +178,7 @@ function mutate(path, data, refresh=true) {
 }
 async function saveDraft() {
   clearTimeout(timer);
+  if (draftRecovery) { await chain; return; }
   if (!dirty || !current()) { await chain; return; }
   const version=draftVersion, entryKey=selected, values=editorValues();
   // Capture before awaiting so keystrokes are not lost while saving.
@@ -185,6 +187,135 @@ async function saveDraft() {
   showProgress();
 }
 async function flush() { clearTimeout(timer); if(dirty) await saveDraft(); await chain; if(dirty) await saveDraft(); }
+function showDraftRecovery() {
+  const recovery = draftRecovery;
+  const entry = recovery.latest.entries.find((item) => item.key === recovery.key);
+  $('draft-recovery-context').textContent = recovery.context;
+  $('draft-recovery-help').textContent = recovery.canSave
+    ? t(
+        'Progress changed in another tab. Choose which version to keep. Your local version will be saved as a pending draft.',
+      )
+    : t(
+        'The active session changed or this entry is no longer available. Copy your local draft before loading the saved version.',
+      );
+  for (const [id, values] of [
+    ['draft-recovery-local', recovery.values],
+    [
+      'draft-recovery-saved',
+      recovery.canSave
+        ? entry.decision.draft ||
+          (entry.decision.status === 'edited'
+            ? entry.decision.values
+            : entry.decision.status === 'accepted'
+              ? entry.proposed
+              : entry.original)
+        : [],
+    ],
+  ]) {
+    const container = $(id);
+    container.replaceChildren();
+    values.forEach((value, index) => {
+      const label = textNode('label', values.length > 1 ? t('Form {0}', index) : t('Translation'));
+      const field = document.createElement('textarea');
+      field.value = value;
+      field.readOnly = true;
+      field.dir = 'auto';
+      label.append(field);
+      container.append(label);
+    });
+  }
+  $('draft-recovery-save').disabled = !recovery.canSave;
+  $('draft-recovery-error').textContent = '';
+}
+function applyReloadedState(updated, entryKey = selected) {
+  state = updated;
+  selected = entryKey;
+  editing = !!current()?.decision.draft;
+  if (state.workspace?.component) {
+    $('component').value = state.workspace.component;
+    setLanguage(state.workspace.language, state.workspace.language_name);
+  }
+  render();
+  ensureLanguages();
+  ensureProjectStatus();
+}
+async function reloadState() {
+  if (reloading || draftRecovery) return;
+  reloading = true;
+  $('reload').disabled = true;
+  clearTimeout(timer);
+  try {
+    await chain;
+    const latest = await api('/api/state');
+    clearTimeout(timer);
+    if (dirty && current()) {
+      const sameSession = latest.workspace?.active_id === state.workspace?.active_id;
+      if (
+        !sameSession ||
+        latest.workspace?.revision !== state.workspace?.revision ||
+        latest.revision !== state.revision
+      ) {
+        const entry = latest.entries.find((item) => item.key === selected);
+        const values = editorValues();
+        draftRecovery = {
+          latest,
+          key: selected,
+          context: current().context || current().source[0],
+          values,
+          canSave: sameSession && !!entry && entry.original.length === values.length,
+        };
+        showDraftRecovery();
+        $('draft-recovery-dialog').showModal();
+        return;
+      }
+      await flush();
+      // The save response already contains current progress. Keep the editor
+      // intact if more keystrokes arrived while its draft was being saved.
+      if (!dirty) applyReloadedState(state);
+    } else applyReloadedState(latest);
+  } finally {
+    reloading = false;
+    $('reload').disabled = false;
+  }
+}
+function cancelDraftRecovery() {
+  if (draftRecovery?.busy) return;
+  draftRecovery = null;
+  $('draft-recovery-dialog').close();
+}
+async function resolveDraftRecovery(saveLocal) {
+  const recovery = draftRecovery;
+  if (!recovery || recovery.busy || (saveLocal && !recovery.canSave)) return;
+  recovery.busy = true;
+  for (const id of ['draft-recovery-save', 'draft-recovery-keep-saved', 'draft-recovery-cancel'])
+    $(id).disabled = true;
+  try {
+    const updated = saveLocal
+      ? await api(
+          '/api/decision',
+          {
+            key: recovery.key,
+            decision: { status: 'pending', draft: recovery.values },
+            revision: recovery.latest.revision,
+          },
+          recovery.latest,
+        )
+      : await api('/api/state');
+    dirty = false;
+    draftVersion++;
+    draftRecovery = null;
+    $('draft-recovery-dialog').close();
+    $('error').hidden = true;
+    applyReloadedState(updated, recovery.key);
+  } catch (exc) {
+    $('draft-recovery-error').textContent = t(exc.message);
+  } finally {
+    recovery.busy = false;
+    $('draft-recovery-save').disabled = !recovery.canSave;
+    $('draft-recovery-keep-saved').disabled = false;
+    $('draft-recovery-cancel').disabled = false;
+  }
+}
 async function select(entryKey) { await flush(); selected=entryKey; editing=!!current()?.decision.draft; render(); }
 async function navigate(direction) { await flush(); const list=visible();const index=list.findIndex(e=>e.key===selected); if(index+direction>=0 && index+direction<list.length) await select(list[index+direction].key); }
 async function saveApproval(entryKey, decision) {
@@ -243,7 +374,14 @@ $('copy-prompt').onclick=()=>act(async()=>{
   try {await navigator.clipboard.writeText(state.workspace.prompt);$('save').textContent=t("✓ Prompt copied. Paste it into this project’s chat.");}
   catch { $('agent-prompt').focus();$('agent-prompt').select();error(t("The prompt is selected. Copy it with Ctrl+C and paste it into the chat.")); }
 });
-$('reload').onclick=()=>act(async()=>{await flush();state=await api('/api/state');render();});
+$('reload').onclick = () => act(reloadState);
+$('draft-recovery-save').onclick = () => act(() => resolveDraftRecovery(true));
+$('draft-recovery-keep-saved').onclick = () => act(() => resolveDraftRecovery(false));
+$('draft-recovery-cancel').onclick = cancelDraftRecovery;
+$('draft-recovery-dialog').addEventListener('cancel', (event) => {
+  event.preventDefault();
+  cancelDraftRecovery();
+});
 $('keep-current').onclick=()=>act(async()=>{await flush();editing=false;await mutate('/api/decision',{key:selected,decision:{status:'rejected',resolution:'current'}});});
 $('use-chosen').onclick=()=>act(async()=>{await flush();const e=current();if(e.decision.status==='pending')throw new Error(t("First accept, reject or approve an edit."));await mutate('/api/decision',{key:selected,decision:{...e.decision,resolution:'chosen'}});});
 $('recent-file').onchange=()=>act(async()=>{
@@ -259,7 +397,7 @@ function download(result) {
   $('save').textContent=t("✓ File and summary exported");
 }
 document.addEventListener('keydown',event=>{
-  if($('export-dialog').open || $('connections-dialog').open)return;
+  if($('export-dialog').open || $('connections-dialog').open || $('draft-recovery-dialog').open)return;
   if(syncing)return;
   if(event.ctrlKey && event.key==='Enter' && editing){event.preventDefault();act(approveEdit);return;}
   // Closing a dialog may return focus to a button. Shortcuts
@@ -373,7 +511,8 @@ async function refreshConnections() {
 function showConnections() {
   const active=activeAccount(), configured=connectionState.config.weblate;
   $('connection-summary').textContent=connectionState.demo?t("Demo without credentials"):`${configured?'Weblate ✓':t("Weblate token missing")} · ${active?.connected?'ChatGPT ✓':t("ChatGPT disconnected")}`;
-  $('chatgpt-status').textContent=active?.connected?`${active.email}${active.can_translate?'':t(" · plan usage authorization required")}`:t("Disconnected");
+  $('chatgpt-status').textContent=active?.connected?`${active.email}${active.can_translate?'':t(" · plan usage authorization required")}`:active?t("{0} · disconnected",active.email):t("Disconnected");
+  $('chatgpt-options').hidden=!active || active.connected;
   $('chatgpt-connect').textContent=active?.connected?t("Disconnect"):t("Connect ChatGPT");
   $('chatgpt-connect').classList.toggle('primary',!active?.connected);
   $('weblate-key').placeholder=configured?t("•••••••• · Token saved"):t("Paste your token");
@@ -393,7 +532,8 @@ $('connections-save').onclick=()=>act(async()=>{
 $('chatgpt-connect').onclick=()=>act(async()=>{
   await flush();
   if(activeAccount()?.connected){await api('/api/chatgpt/disconnect',{});modelCache.clear();$('model').replaceChildren(new Option(t("Connect ChatGPT"),''));await refreshConnections();return;}
-  const result=await api('/api/chatgpt/start',{});window.location.assign(result.url);
+  const account=activeAccount();
+  const result=await api('/api/chatgpt/start',account && !$('chatgpt-new-account').checked ? {account_id:account.id} : {});window.location.assign(result.url);
 });
 const exportDrafts=new Map(), exportExpanded=new Set();
 let exportReport, exportBusy=false;
@@ -512,6 +652,7 @@ async function changeUILanguage(code) {
   if(lastSyncEvent)syncStage(lastSyncEvent);
   if(lastError && !$('error').hidden)$('error').textContent=t(lastError);
   if(exportReport && $('export-dialog').open)validation(exportReport);
+  if(draftRecovery)showDraftRecovery();
   $('user-guide').href=uiLanguage==='es'?'/USER_GUIDE.es.md':'/USER_GUIDE.md';
 }
 for(const code of ['en','es'])$('ui-'+code).onclick=()=>act(()=>changeUILanguage(code));

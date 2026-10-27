@@ -1,5 +1,6 @@
 """Local comparison, persistence and export. No network access."""
 import copy
+from bisect import bisect_right
 from glossary import contains, source_matches, variants
 from collections import Counter
 from datetime import datetime, timezone
@@ -54,10 +55,13 @@ class Catalog:
     def __init__(self, text):
         self.text = text
         try:
-            self.po = polib.pofile(text, encoding='utf-8', check_for_duplicates=True)
+            self.po = polib.pofile(text, encoding='utf-8', check_for_duplicates=False)
         except Exception as exc:
             raise ReviewError(f'Invalid PO: {exc}') from exc
         self.entries = [e for e in self.po if not e.obsolete]
+        identifiers = [(entry.msgctxt, entry.msgid) for entry in self.entries]
+        if len(set(identifiers)) != len(identifiers):
+            raise ReviewError('Duplicate identifiers in the PO.')
         self.by_key = {key(e): e for e in self.entries}
         if len(self.by_key) != len(self.entries):
             raise ReviewError('Duplicate identifiers in the PO.')
@@ -95,6 +99,7 @@ class Catalog:
 
     def render(self, replacements, clear_fuzzy=()):
         text = self.text
+        edits = []
         newline = '\r\n' if '\r\n' in text else '\n'
         for entry_key, values in sorted(replacements.items(), key=lambda pair: self.spans[pair[0]][0], reverse=True):
             entry = self.by_key[entry_key]
@@ -112,25 +117,31 @@ class Catalog:
                 prefix = f'msgstr[{i}]' if entry.msgid_plural else 'msgstr'
                 lines.append(f'{prefix} "{escaped}"')
             trailing = newline if self.text[start:end].endswith('\n') else ''
-            text = text[:start] + newline.join(lines) + trailing + text[end:]
+            edits.append((start, end, newline.join(lines) + trailing))
         # Remove fuzzy only from approved entries; preserve all other bytes and flags.
         if clear_fuzzy:
-            current = Catalog(text)
-            edits = []
             matches = list(TRANSLATION.finditer(text))
-            for entry_key in clear_fuzzy:
-                if 'fuzzy' not in current.by_key[entry_key].flags:
+            ends = [match.end() for match in matches]
+            for entry_key in set(clear_fuzzy):
+                if 'fuzzy' not in self.by_key[entry_key].flags:
                     continue
-                start = current.spans[entry_key][0]
-                before = max((m.end() for m in matches if m.end() <= start), default=0)
+                start = self.spans[entry_key][0]
+                index = bisect_right(ends, start)
+                before = ends[index - 1] if index else 0
                 for match in re.finditer(r'^#,[^\r\n]*(?:\r?\n|$)', text[before:start], re.M):
                     flags = [flag.strip() for flag in match.group(0)[2:].strip().split(',')]
                     if 'fuzzy' in flags:
                         remaining = [flag for flag in flags if flag != 'fuzzy']
                         replacement = '#, ' + ', '.join(remaining) + newline if remaining else ''
                         edits.append((before + match.start(), before + match.end(), replacement))
-            for start, end, replacement in sorted(edits, reverse=True):
-                text = text[:start] + replacement + text[end:]
+        parts, position = [], 0
+        for start, end, replacement in sorted(edits):
+            if start < position:
+                raise ReviewError('Overlapping PO edits are not supported.')
+            parts.extend((text[position:start], replacement))
+            position = end
+        parts.append(text[position:])
+        text = ''.join(parts)
         parsed = Catalog(text)
         if list(parsed.by_key) != list(self.by_key) or parsed.po.metadata != self.po.metadata:
             raise ReviewError('Export changed identifiers or the header.')
@@ -168,9 +179,10 @@ class Review:
                 raise ReviewError('The proposed PO has a different number of plural forms.')
         self.changed = [k for k, e in self.original.by_key.items() if forms(e) != forms(self.proposed.by_key[k])]
         if review_keys is not None:
-            if not set(review_keys).issubset(self.original.by_key):
+            review_keys = set(review_keys)
+            if not review_keys.issubset(self.original.by_key):
                 raise ReviewError('Some review keys are outside the base PO.')
-            self.changed = [k for k in self.original.by_key if k in set(review_keys)]
+            self.changed = [k for k in self.original.by_key if k in review_keys]
         self.data_dir = Path(data_dir)
         self.state_path = self.data_dir / 'decisiones.json'
         self.signature = digest(self.original.text + '\x00' + self.proposed.text)

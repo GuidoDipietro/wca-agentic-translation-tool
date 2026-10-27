@@ -15,6 +15,7 @@ from weblate import Client
 from connections import Connections
 from openai_auth import ChatGPTAuth
 from translation import OpenAITranslator, generate_proposals
+from network import LOCAL_REQUEST_TIMEOUT
 
 ROOT = Path(__file__).resolve().parent
 
@@ -44,6 +45,10 @@ def make_handler(controller, connections=None, auth=None, translator=None):
         return controller
 
     class Handler(BaseHTTPRequestHandler):
+        def setup(self):
+            super().setup()
+            self.connection.settimeout(LOCAL_REQUEST_TIMEOUT)
+
         def respond(self, status, body, content_type='application/json; charset=utf-8', extra=None):
             data = body.encode('utf-8') if isinstance(body, str) else body
             self.send_response(status)
@@ -58,7 +63,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
             self.end_headers()
             try:
                 self.wfile.write(data)
-            except (BrokenPipeError, ConnectionResetError):
+            except (BrokenPipeError, ConnectionResetError, TimeoutError):
                 # Reloading can cancel a response already in progress.
                 self.close_connection = True
 
@@ -198,7 +203,7 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                     try:
                         self.wfile.write((json.dumps(event, ensure_ascii=False) + '\n').encode('utf-8'))
                         self.wfile.flush()
-                    except (BrokenPipeError, ConnectionResetError):
+                    except (BrokenPipeError, ConnectionResetError, TimeoutError):
                         connected = False
 
             try:
@@ -223,10 +228,15 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                 self.json_response({'error': 'application/json is required.'}, 415)
                 return
             try:
+                if self.headers.get('Transfer-Encoding') or len(self.headers.get_all('Content-Length', [])) != 1:
+                    raise ReviewError('A single Content-Length header is required; chunked requests are not supported.')
                 length = int(self.headers.get('Content-Length', 0))
                 if not 0 < length <= 8 * 1024 * 1024:
                     raise ReviewError('Empty or oversized request (8 MB maximum).')
-                data = json.loads(self.rfile.read(length))
+                raw = self.rfile.read(length)
+                if len(raw) != length:
+                    raise ReviewError('The request body is incomplete.')
+                data = json.loads(raw)
                 if not isinstance(data, dict):
                     raise ReviewError('Invalid request.')
                 path = urlsplit(self.path).path
@@ -287,6 +297,8 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                     self.json_response({'error': 'Resource not found.'}, 404)
             except (ReviewError, ValueError, KeyError, TypeError) as exc:
                 self.json_response({'error': str(exc)}, 400)
+            except TimeoutError:
+                self.json_response({'error': 'The request timed out. Try again.'}, 408)
             except OSError:
                 self.json_response({'error': 'Could not save the file. Check permissions and available disk space; the decision was not confirmed.'}, 500)
 

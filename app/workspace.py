@@ -10,9 +10,8 @@ import tempfile
 import uuid
 import xml.etree.ElementTree as ET
 
-import polib
 
-from core import Catalog, Review, ReviewError, atomic_write, digest, forms, key
+from core import Catalog, Review, ReviewError, atomic_write, digest, forms
 from weblate import Client, load_token
 from locales import LocalesReview
 from payload import PayloadReview
@@ -85,7 +84,7 @@ def prepare_base(english, target, language="es_419"):
     return Catalog(text)
 
 
-def make_candidates(english, base, previous=None):
+def make_candidates(english, base, previous=None, pending_source_changes=None):
     previous_context = {}
     if previous:
         for old in previous.entries:
@@ -107,9 +106,19 @@ def make_candidates(english, base, previous=None):
             reasons.append('needs_translation')
         if 'fuzzy' in target.flags:
             reasons.append('needs_review')
+        pending = (pending_source_changes or {}).get(entry_key)
+        carry_source_change = (
+            pending is not None and 'source_changed' not in reasons
+            and forms(target) == pending['original']
+            and ('fuzzy' in target.flags) == ('fuzzy' in pending.get('flags', []))
+        )
+        if carry_source_change:
+            reasons.insert(0, 'source_changed')
         if not reasons:
             continue
         items.append({'key': entry_key, 'context': source.msgctxt or '', 'source': [source.msgid] + ([source.msgid_plural] if source.msgid_plural else []), 'original': forms(target), 'reasons': reasons, 'previous_source': [old.msgid] + ([old.msgid_plural] if old.msgid_plural else []) if old else None, 'previous_translation': forms(old) if old else None, 'comment': source.comment, 'translator_comment': target.tcomment, 'references': source.occurrences, 'flags': target.flags})
+        if carry_source_change:
+            items[-1].update(previous_source=pending.get('previous_source'), previous_translation=pending.get('previous_translation'))
     return items
 
 
@@ -191,11 +200,35 @@ class Workspace:
         english, target = Catalog(downloaded['english']), Catalog(downloaded['target'])
         base = prepare_base(english, target, language)
         previous = None
+        pending_source_changes = {}
         sessions = self.sessions()
         matching = [s for s in sessions if s['component'] == component and s['language'] == language]
         if matching:
-            previous = Catalog.read(self.directory(matching[0]['id']) / 'base.po')
-        candidates = make_candidates(english, base, previous)
+            previous_folder = self.directory(matching[0]['id'])
+            previous = Catalog.read(previous_folder / 'base.po')
+            previous_manifest = read_json(previous_folder / 'session.json')
+            for name in ('base.po', 'work.json'):
+                if digest((previous_folder / name).read_text(encoding='utf-8')) != previous_manifest['hashes'][name]:
+                    raise ReviewError(f'The session base was modified: {name}. Restore a session backup.')
+            previous_work = read_json(previous_folder / 'work.json')
+            source_changes = {item['key']: item for item in previous_work['entries'] if 'source_changed' in item['reasons']}
+            decisions_path = previous_folder / 'review' / 'decisiones.json'
+            decisions = {}
+            if source_changes and decisions_path.exists():
+                # A decision resolves a source change only when it still belongs
+                # to the validated review inputs and has a valid structure.
+                proposal_path = previous_folder / 'review.po'
+                previous_review = Review(
+                    previous_folder / 'base.po', proposal_path if proposal_path.exists() else previous_folder / 'base.po',
+                    previous_folder / 'review',
+                    review_keys=[item['key'] for item in previous_work['entries']] if proposal_path.exists() else None,
+                )
+                decisions = previous_review.document['decisions']
+            pending_source_changes = {
+                entry_key: item for entry_key, item in source_changes.items()
+                if decisions.get(entry_key, {}).get('status', 'pending') == 'pending'
+            }
+        candidates = make_candidates(english, base, previous, pending_source_changes)
         glossary = downloaded.get('glossary')
         terms = glossary_terms(glossary, language)
         now = datetime.now(timezone.utc)
