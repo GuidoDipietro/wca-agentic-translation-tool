@@ -26,17 +26,17 @@ try {
  await click('copy-prompt');await wait('document.getElementById("prompt-details").open');
  assert(await evaluate('document.getElementById("agent-prompt").value.includes("proposals.json")'),'Agent prompt is available');
  const work=JSON.parse(await readFile(`${folder}/work.json`,'utf8'));
- const proposals={version:1,session_id:work.session_id,base_sha256:work.base_sha256,entries:work.entries.map(e=>({key:e.key,target:e.context==='greeting'?['Hola revisada %s']:['Nueva clave'],note:'Nota del agente'}))};
+ const proposals={version:1,session_id:work.session_id,base_sha256:work.base_sha256,entries:work.entries.map(e=>({key:e.key,target:e.context==='greeting'?['Hola revisada %s']:['Nueva clave'],note:'Agent note'}))};
  await writeFile(`${folder}/proposals.json`,JSON.stringify(proposals));
  await click('load-proposals');await wait('state.workspace.ready && state.entries.length===2 && state.counts.pending===2');
- assert(await evaluate('document.getElementById("metadata").textContent.includes("Nota del agente")'),'Agent notes are displayed');
+ assert(await evaluate('document.getElementById("metadata").textContent.includes("Agent note")'),'Agent notes are displayed');
  await click('accept');await wait('state.counts.accepted===1 && saving===0');
  await click('accept');await wait('state.counts.accepted===2 && saving===0');
  const result=await evaluate('api("/api/export",{revision:state.revision})');
- assert(result.filename.endsWith(component==='payload'?'.json':component==='locales'?'.yml':'.po'),'Correct native export format');
+ assert(result.filename.endsWith(component==='payload'?'.json':component==='locales'?'.yaml':'.po'),'Correct native export format');
  if(component==='payload') {const data=JSON.parse(result.content);assert(data.new.message==='Nueva clave' && data.stable.message==='Sin tocar','Payload JSON preserves keys and messages');}
  assert(result.ok && result.content.includes('Nueva clave') && !result.content.includes('#, fuzzy'),'Manual export contains approvals and clears fuzzy');
- await send('Page.navigate',{url:base});await wait("typeof state!=='undefined' && state && state.counts.accepted===2");
+ await send('Page.navigate',{url:base});await wait("typeof state!=='undefined' && state && state.counts.accepted===2 && !document.getElementById('sync').disabled");
  await evaluate("document.getElementById('manual-mode').checked=true;document.getElementById('manual-mode').dispatchEvent(new Event('change'))");
  await click('sync');await wait('state.workspace.sessions.length===3 && !document.getElementById("sync").disabled');
  await evaluate(`document.getElementById('sessions').value=${JSON.stringify(session)}`);await click('open-session');
@@ -44,13 +44,13 @@ try {
  const previousSession=await evaluate('state.workspace.active_id');
  await click('sync');await wait('!syncing && !document.getElementById("error").hidden');
  assert(await evaluate(`state.workspace.active_id===${JSON.stringify(previousSession)}`),'Failed sync preserves the previous session');
- assert(await evaluate('document.getElementById("workspace-status").textContent.includes("Se conserva la última sesión")'),'Failed sync identifies the preserved session');
+ assert(await evaluate('document.getElementById("workspace-status").textContent.includes("The last session has been preserved")'),'Failed sync identifies the preserved session');
  await click('sync');await wait(`!syncing && state.workspace.active_id!==${JSON.stringify(previousSession)}`);
  assert(await evaluate('document.getElementById("error").hidden'),'Successful retry clears the previous error banner');
  assert(await evaluate('!document.getElementById("sync-indicator").classList.contains("failed")'),'Successful retry clears the failure indicator');
- assert(await evaluate('state.workspace.created_at && document.getElementById("workspace-detail").textContent.includes("Base descargada:")'),'The downloaded base has a visible timestamp');
+ assert(await evaluate('state.workspace.created_at && document.getElementById("workspace-detail").textContent.includes("Base downloaded:")'),'The downloaded base has a visible timestamp');
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
  assert(await evaluate('document.documentElement.scrollWidth<=window.innerWidth'),'Workspace fits mobile screen');
  assert(errors.length===0,'No browser exceptions: '+errors.join('; '));
- console.log('OK navegador: repo vacío → sync al día → nuevas claves → prompt → propuestas → revisión → exportación → recuperar sesión.');
+ console.log('OK browser: empty repository → current sync → new keys → prompt → proposals → review → export → restore session.');
 } finally {await fetch(`${debug}/json/close/${tab.id}`);ws.close();}

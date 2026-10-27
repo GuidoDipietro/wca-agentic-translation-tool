@@ -57,7 +57,7 @@ class LocalesTests(unittest.TestCase):
         a,b=[e['key'] for e in state['entries']]
         r.decide(a,{'status':'accepted'},0);r.decide(b,{'status':'rejected'},1)
         result=r.export(2)
-        self.assertTrue(result['ok']);self.assertEqual(result['filename'],'es-419_reviewed.yml')
+        self.assertTrue(result['ok']);self.assertEqual(result['filename'],'es-419_locales_reviewed.yaml')
         _,parsed,lang=yaml_load(result['content'])
         self.assertEqual(parsed[lang]['notifications']['copied'],'Texto revisado')
         self.assertNotIn('delegates_page',parsed[lang])
@@ -70,7 +70,7 @@ class LocalesTests(unittest.TestCase):
         self.sync();state=self.load();r=self.w.review
         r.decide(state['entries'][0]['key'],{'status':'accepted'},0)
         result=r.export(1,confirm_pending=True,mode='suggestions')
-        self.assertTrue(result['ok']);self.assertEqual(result['filename'],'es-419_suggestions.yml')
+        self.assertTrue(result['ok']);self.assertEqual(result['filename'],'es-419_locales_suggestions.yaml')
         _,data,lang=yaml_load(result['content'])
         self.assertEqual(dict(data[lang]),{'notifications':{'copied':'Texto revisado'}})
         self.assertNotIn('stable',data[lang]);self.assertNotIn('count',data[lang])

@@ -65,7 +65,7 @@ class AuthNavigationTests(unittest.TestCase):
         status, _, body = self.request('GET', headers['Location'], NAVIGATION)
         self.assertEqual(status, 200)
         self.assertIn('/app.js', body)
-        for path in ['/app.js', '/style.css', '/api/state', '/api/connections']:
+        for path in ['/app.js', '/style.css', '/i18n.js', '/translations.json', '/USER_GUIDE.md', '/USER_GUIDE.es.md', '/api/state', '/api/connections']:
             status, _, _ = self.request('GET', path, {'Sec-Fetch-Site': 'same-origin'})
             self.assertEqual(status, 200, path)
 
@@ -78,11 +78,11 @@ class AuthNavigationTests(unittest.TestCase):
         self.assertEqual(self.request('GET', headers['Location'], NAVIGATION)[0], 200)
 
     def test_external_api_and_resource_requests_remain_blocked(self):
-        for path in ['/api/state', '/api/connections', '/api/models', '/api/languages', '/app.js', '/style.css']:
+        for path in ['/api/state', '/api/connections', '/api/models', '/api/languages', '/app.js', '/style.css', '/i18n.js', '/translations.json', '/USER_GUIDE.md', '/USER_GUIDE.es.md']:
             with self.subTest(path=path):
                 status, _, body = self.request('GET', path, NAVIGATION)
                 self.assertEqual(status, 403)
-                self.assertEqual(json.loads(body)['error'], 'Solicitud externa bloqueada.')
+                self.assertEqual(json.loads(body)['error'], 'External request blocked.')
 
     def test_external_posts_cannot_start_login_or_change_settings(self):
         for path in ['/api/chatgpt/start', '/api/connections', '/api/sync', '/api/dismiss-check', '/api/validate-export', '/api/export', '/']:

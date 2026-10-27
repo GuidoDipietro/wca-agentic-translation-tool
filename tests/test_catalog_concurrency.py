@@ -39,7 +39,7 @@ class CatalogConcurrencyTests(unittest.TestCase):
 
     def wait_catalog(self,result):
         self.entered.set()
-        if not self.release.wait(8):raise ReviewError('No se liberó el catálogo de prueba')
+        if not self.release.wait(8):raise ReviewError('Test catalog was not released')
         return result
 
     def request(self,method,path,data=None):
@@ -56,14 +56,14 @@ class CatalogConcurrencyTests(unittest.TestCase):
         worker.start()
         try:
             self.assertTrue(self.entered.wait(3))
-            # Simula recargar mientras la pestaña anterior sigue buscando opciones.
+            # Simulate reloading while the previous tab is still looking up options.
             status,state=self.request('GET','/api/state');self.assertEqual(status,200,state)
             entry=state['entries'][0]
             status,accepted=self.request('POST','/api/decision',{
                 'session_id':state['workspace']['active_id'],'workspace_revision':state['workspace']['revision'],
                 'revision':state['revision'],'key':entry['key'],'decision':{'status':'accepted'}})
             self.assertEqual(status,200,accepted);self.assertEqual(accepted['counts']['accepted'],1)
-            self.assertFalse(self.release.is_set(),'La decisión no debe esperar a la red')
+            self.assertFalse(self.release.is_set(),'The decision must not wait for the network')
             status,reloaded=self.request('GET','/api/state');self.assertEqual(status,200)
             self.assertEqual(reloaded['counts']['accepted'],1)
         finally:

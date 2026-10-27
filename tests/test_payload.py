@@ -47,7 +47,7 @@ class PayloadTests(unittest.TestCase):
         result = r.export(1, mode='changes')
         self.assertTrue(result['ok'], result)
         self.assertEqual(json_load(result['content']), {'pages#abc:title': {'message': 'Bienvenidos', 'description': 'Keep this'}})
-        self.assertTrue(result['filename'].endswith('.json'))
+        self.assertEqual(result['filename'], 'es-419_payload_reviewed.json')
         restored = Workspace(self.root / 'data', self.client)
         self.assertEqual(restored.review.export(1, mode='changes')['content'], result['content'])
 
@@ -118,7 +118,7 @@ class PayloadTests(unittest.TestCase):
         state = self.w.sync('payload')
         self.assertEqual(state['workspace']['candidate_count'], 2)
         r, _ = self.proposals()
-        # La exportación completa conserva la omisión mientras esté pendiente.
+        # Full export preserves the omission while the entry is pending.
         self.assertEqual(r.export(0, confirm_pending=True)['content'], payload['native_json'])
         r.set_recent(payload['native_json'], 0)
         item = next(e for e in self.w.work['entries'] if e['context'] == context)
@@ -132,13 +132,13 @@ class PayloadTests(unittest.TestCase):
     def test_missing_nonempty_translation_is_still_rejected(self):
         payload, units = download()
         units.append({'context': 'missing', 'source': ['New document'], 'target': ['Documento nuevo']})
-        with self.assertRaisesRegex(ReviewError, 'clave no está'):
+        with self.assertRaisesRegex(ReviewError, 'key is missing'):
             convert_units(units, payload['native_json'])
 
     def test_existing_translation_difference_is_reported_separately(self):
         payload, units = download()
         units[1]['target'] = ['Otro texto']
-        with self.assertRaisesRegex(ReviewError, 'traducciones distintas'):
+        with self.assertRaisesRegex(ReviewError, 'different translations'):
             convert_units(units, payload['native_json'])
 
     def test_real_download_accepts_missing_empty_key_and_keeps_native_file(self):
@@ -185,4 +185,4 @@ class PayloadTests(unittest.TestCase):
         client.get = Mock(side_effect=lambda path: native if '/payload/' in path else '<martif/>')
         result = client.download()
         self.assertEqual(result['native_json'], native)
-        self.assertTrue(any('1 claves' in warning for warning in result['warnings']))
+        self.assertTrue(any('1 keys' in warning for warning in result['warnings']))

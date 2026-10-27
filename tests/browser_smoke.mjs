@@ -40,7 +40,7 @@ try{
  await wait("document.querySelectorAll('.edit-form').length===1");
  await evaluate("document.querySelector('.edit-form').dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',ctrlKey:true,bubbles:true}))");
  await wait("current().context==='plural' && state.entries[0].decision.status==='edited' && saving===0");
- // El filtro de pendientes no debe provocar que se saltee la entrada siguiente.
+ // The pending filter must not cause the next entry to be skipped.
  await click('pending');await wait('saving===0 && current().decision.status==="pending"');
  await evaluate('select(state.entries[0].key)');await click('pending');await wait('saving===0 && state.counts.pending===2');
  await evaluate("document.getElementById('filter').value='pending';document.getElementById('filter').dispatchEvent(new Event('change'))");
@@ -50,5 +50,5 @@ try{
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
  assert(await evaluate('document.documentElement.scrollWidth <= window.innerWidth'),'No horizontal overflow on mobile');
  assert(errors.length===0,'Browser errors: '+errors.join('; '));
- console.log('OK navegador: decisiones, atajos, borradores, recarga, plurales, exportación, advertencias y móvil.');
+ console.log('OK browser: decisions, shortcuts, drafts, reload, plurals, export, warnings and mobile.');
 }finally{await fetch(`${debug}/json/close/${tab.id}`);ws.close();}

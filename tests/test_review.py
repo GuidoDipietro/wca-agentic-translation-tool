@@ -103,7 +103,7 @@ class ReviewTests(unittest.TestCase):
             result = self.export(confirm_pending=True)
             self.assertFalse(result['ok'])
             self.assertTrue(any('placeholders' in err['message'] for err in result['errors']))
-        self.assertFalse((self.data/'es_419_reviewed.po').exists())
+        self.assertFalse((self.data/'es-419_regulations_reviewed.po').exists())
 
     def test_named_placeholders_and_reference_warnings(self):
         from core import PLACEHOLDER, tokens
@@ -193,7 +193,7 @@ class ReviewTests(unittest.TestCase):
         self.assertTrue(result['ok'])
         summary=json.loads((self.data/'resumen_exportacion.json').read_text())
         self.assertEqual(summary['counts'],{'accepted':1,'rejected':0,'edited':1,'pending':0})
-        Catalog.read(self.data/'es_419_reviewed.po')
+        Catalog.read(self.data/'es-419_regulations_reviewed.po')
 
 
 if __name__ == '__main__':

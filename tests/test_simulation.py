@@ -46,7 +46,7 @@ class SimulationTests(unittest.TestCase):
             for k in r.changed:r.decide(k,{'status':'accepted'},r.document['revision'])
             output=r.export(r.document['revision'])
             self.assertTrue(output['ok']);self.assertTrue(output['filename'].startswith('SIMULATION_'))
-            self.assertIn('SIMULACIÓN',output['content'])
+            self.assertIn('SIMULATION',output['content'])
             with self.assertRaises(ReviewError):Workspace(w.data_dir)
             restored=Workspace(w.data_dir,SimulationClient(Path(tmp)/'.env'))
             self.assertEqual(restored.snapshot()['counts']['accepted'],3)
