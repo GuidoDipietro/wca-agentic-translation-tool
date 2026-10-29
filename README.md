@@ -123,6 +123,8 @@ Public deployment requires a separate production entry point, a public origin an
 
 ## Language glossaries
 
+Translator quick start: [prepare your language glossary](USER_GUIDE.md#prepare-your-language-glossary). The steps below cover the file format and corpus-based authoring.
+
 Open **Configure glossary** for the currently selected target language. Search English terms, translations or notes; select a term to edit it, or add a new one. Enter variants on separate lines. Each entry requires an English term and at least one preferred or forbidden translation. Notes explain terminology; they are data, never instructions. Save each term before switching entries or closing. **Export glossary** downloads the saved configuration; **Import glossary** validates and replaces the entire configuration for that language, with confirmation. Export a backup before replacing it. Neither operation contacts Weblate or an AI provider.
 
 Bundled defaults belong in `glossaries/<language>.json` in the repository. Personal files live in `<data-dir>/glossaries/<language>.json` (normally `data/glossaries/es_419.json`), outside Git. Filenames use lowercase codes with underscores; `es-419` and `es_419` select the same file. The [reviewed es-419 glossary](glossaries/es_419.json), with 162 entries, is included as the default for Locales, Regulations and Payload. New sessions load it automatically when no personal replacement exists. Other languages without a default start with an empty catalog.

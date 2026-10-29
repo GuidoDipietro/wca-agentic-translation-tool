@@ -123,6 +123,8 @@ Un despliegue público requiere un punto de entrada de producción separado, ori
 
 ## Glosarios por idioma
 
+Inicio rápido para traductores: [preparar el glosario de tu idioma](USER_GUIDE.es.md#preparar-el-glosario-de-tu-idioma). Los pasos siguientes cubren el formato y la preparación desde un corpus.
+
 Abrí **Configurar glosario** para el idioma de destino seleccionado. Podés buscar términos en inglés, traducciones o notas, seleccionar una entrada y modificarla, o agregar términos. Escribí una variante por línea. Cada entrada necesita un término en inglés y una traducción preferida o prohibida. Las notas explican el uso; son datos, nunca instrucciones. Guardá cada término antes de cambiar de entrada o cerrar. **Exportar glosario** descarga la configuración guardada; **Importar glosario** valida y reemplaza toda la configuración del idioma, previa confirmación. Exportá una copia antes de reemplazarla. Estas operaciones no consultan Weblate ni proveedores de IA.
 
 Los predeterminados se distribuyen en `glossaries/<idioma>.json`. Los personales se guardan en `<data-dir>/glossaries/<idioma>.json`, normalmente `data/glossaries/es_419.json`, fuera de Git. Los nombres usan minúsculas y guiones bajos: `es-419` y `es_419` seleccionan el mismo archivo. Se incluye el [glosario revisado de es-419](glossaries/es_419.json), con 162 términos, como predeterminado para Locales, Regulations y Payload. Las sesiones nuevas lo cargan automáticamente si no existe un reemplazo personal. Para otros idiomas sin predeterminado, el catálogo empieza vacío.
