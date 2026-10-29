@@ -118,7 +118,16 @@ def make_handler(controller, connections=None, auth=None, translator=None):
             if not self.trusted():
                 return
             path = urlsplit(self.path).path
-            files = {'/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/i18n.js': ('i18n.js', 'text/javascript; charset=utf-8'), '/translations.json': ('translations.json', 'application/json; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+            files = {'/': ('index.html', 'text/html; charset=utf-8'), '/app.js': ('app.js', 'text/javascript; charset=utf-8'), '/glossary.js': ('glossary.js', 'text/javascript; charset=utf-8'), '/i18n.js': ('i18n.js', 'text/javascript; charset=utf-8'), '/translations.json': ('translations.json', 'application/json; charset=utf-8'), '/style.css': ('style.css', 'text/css; charset=utf-8')}
+            if path == '/api/glossary':
+                try:
+                    if not isinstance(controller, Workspace):
+                        raise ReviewError('A workspace session is required.')
+                    query = parse_qs(urlsplit(self.path).query)
+                    self.json_response(controller.glossaries.snapshot(query.get('language', ['es_419'])[0]))
+                except (ReviewError, ValueError, OSError) as exc:
+                    self.json_response({'error': str(exc)}, 400)
+                return
             if path == '/api/connections':
                 self.json_response({'config': connections.status(), 'chatgpt': auth.status(), 'demo': demo})
                 return
@@ -240,6 +249,11 @@ def make_handler(controller, connections=None, auth=None, translator=None):
                 if not isinstance(data, dict):
                     raise ReviewError('Invalid request.')
                 path = urlsplit(self.path).path
+                if path == '/api/glossary':
+                    if not isinstance(controller, Workspace):
+                        raise ReviewError('A workspace session is required.')
+                    self.json_response(controller.glossaries.save(data.get('language'), data.get('document'), data.get('revision')))
+                    return
                 if path == '/api/connections':
                     connections.configure(data.get('values', {}))
                     self.json_response({'config': connections.status(), 'chatgpt': auth.status(), 'demo': demo})

@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>WCA Translation Studio</title><link rel="stylesheet" href="/style.css"><script src="/i18n.js" defer></script><script src="/app.js" defer></script>
+  <title>WCA Translation Studio</title><link rel="stylesheet" href="/style.css"><script src="/i18n.js" defer></script><script src="/app.js" defer></script><script src="/glossary.js" defer></script>
 </head>
 <body>
 <header>
   <div><span class="eyebrow">WCA TRANSLATION STUDIO</span><h1>AI proposes. You choose the words.</h1><p>From new strings to a reviewed translation, in your language.</p></div>
-  <div class="header-actions"><div class="connection-bar"><div class="ui-language" role="group" aria-label="Interface language"><button id="ui-en" type="button" lang="en" aria-label="English" title="English" aria-pressed="true">🇺🇸 EN</button><button id="ui-es" type="button" lang="es" aria-label="Español" title="Español" aria-pressed="false">🇦🇷 ES</button></div><a id="user-guide" href="/USER_GUIDE.md" target="_blank" rel="noopener">User guide</a><button id="connections-open">Connections</button></div><span id="connection-summary" class="muted"></span><button id="export" class="primary">Download translation ↗</button></div>
+  <div class="header-actions"><div class="connection-bar"><div class="ui-language" role="group" aria-label="Interface language"><button id="ui-en" type="button" lang="en" aria-label="English" title="English" aria-pressed="true">🇺🇸 EN</button><button id="ui-es" type="button" lang="es" aria-label="Español" title="Español" aria-pressed="false">🇦🇷 ES</button></div><a id="user-guide" href="/USER_GUIDE.md" target="_blank" rel="noopener">User guide</a><button id="glossary-open">Configure glossary</button><button id="connections-open">Connections</button></div><span id="connection-summary" class="muted"></span><button id="export" class="primary">Download translation ↗</button></div>
 </header>
 <div id="demo-banner" class="demo-banner" hidden>DEMO · fictional data · no Weblate connection · do not upload these files</div>
 <section id="workspace-panel" class="sync-panel" hidden>
@@ -19,6 +19,7 @@
     <button id="generate" class="primary" hidden>Continue translation</button>
   </div>
   <p id="catalog-status" class="muted" role="status" aria-live="polite"></p>
+  <p id="session-glossary" class="muted"></p>
   <p id="generation-status" class="muted"></p>
   <section id="sync-indicator" class="sync-indicator" aria-label="Synchronization stages" hidden><div class="sync-progress-heading"><strong id="sync-current" role="status" aria-live="polite"></strong><span id="sync-elapsed"></span></div><progress id="sync-progress" max="7" value="0"></progress><ol id="sync-stages"></ol></section>
   <p id="workspace-warnings" class="workspace-warnings"></p>
@@ -54,6 +55,22 @@
   </article>
 </main>
 </div>
+<dialog id="glossary-dialog" aria-labelledby="glossary-title">
+<div class="dialog-heading"><h2 id="glossary-title">Configure glossary</h2><button id="glossary-close" aria-label="Close glossary">×</button></div>
+<p id="glossary-summary" role="status"></p>
+<p class="muted">This glossary is shared by all components in the selected language. Changes apply to new sessions; existing reviews keep their original glossary.</p>
+<p class="muted">Your saved glossary replaces the bundled default. Weblate adds terms whose English variants are not configured here.</p>
+<div class="actions"><button id="glossary-add">Add term</button><button id="glossary-export">Export glossary</button><button id="glossary-import">Import glossary</button><input id="glossary-file" type="file" accept=".json,application/json" hidden></div>
+<div class="glossary-layout"><section><label for="glossary-search">Search glossary</label><input id="glossary-search" type="search"><nav id="glossary-list" aria-label="Glossary terms"></nav></section>
+<form id="glossary-form"><fieldset id="glossary-editor"><legend>Reference terminology</legend>
+<p class="muted">One variant per line. Use the English term as the source.</p>
+<label for="glossary-source">English terms</label><textarea id="glossary-source" dir="auto" rows="2" required></textarea>
+<label for="glossary-preferred">Preferred translations</label><textarea id="glossary-preferred" dir="auto" rows="2"></textarea>
+<label for="glossary-forbidden">Forbidden translations</label><textarea id="glossary-forbidden" dir="auto" rows="2"></textarea>
+<label for="glossary-note">Usage note</label><textarea id="glossary-note" dir="auto" rows="2"></textarea>
+<div class="actions"><button id="glossary-save" type="submit" class="primary">Save term</button><button id="glossary-remove" type="button">Delete term</button></div>
+</fieldset></form></div><p id="glossary-message" role="status" aria-live="polite"></p>
+</dialog>
 <dialog id="export-dialog"><h2>Review and download</h2><p id="export-counts"></p><p id="export-help" class="muted"></p><div id="validation"></div><label id="pending-ack"><input type="checkbox" id="confirm-pending"> I confirm that pending entries will be omitted.</label><label id="warning-ack"><input type="checkbox" id="confirm-warnings"> I reviewed the remaining warnings and confirm these changes.</label><div class="actions"><button id="close-export">Back</button><button id="download" class="primary">Download file</button></div></dialog>
 <dialog id="connections-dialog"><div class="dialog-heading"><h2>Connections</h2><button id="connections-close" aria-label="Close connections">×</button></div>
 <section class="connection-card"><h3>ChatGPT</h3><p id="chatgpt-status">Disconnected</p><button id="chatgpt-connect" class="primary">Connect ChatGPT</button><details id="chatgpt-options" hidden><summary>More options</summary><label><input id="chatgpt-new-account" type="checkbox"> Use another ChatGPT account on the next sign-in</label></details></section>
