@@ -194,6 +194,7 @@ class OpenAITranslator:
                         'Translate only requested keys to the specified language. Preserve exact key IDs, placeholders, links, numbers, '
                         'negations, exceptions and normative meaning. Follow existing translations and glossary terminology. '
                         'When existing wording conflicts with the glossary, use its preferred terms and avoid its forbidden translations. '
+                        'More specific glossary phrases take precedence over broader terms; preserve documented contextual exceptions. '
                         'Return every requested temporary key once, with target_count strings in the order of plural_forms when present. Never concatenate plurals. '
                         'Leave note empty unless there is ambiguity or a deliberate unchanged translation; then explain briefly. Do not approve anything or call tools. '
                         'Return JSON matching the supplied schema.')

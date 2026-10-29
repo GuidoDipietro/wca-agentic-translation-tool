@@ -1,0 +1,1764 @@
+{
+  "version": 1,
+  "language": "es_419",
+  "entries": [
+    {
+      "source": [
+        "2x2x2 Cube"
+      ],
+      "preferred": [
+        "Cubo 2x2x2"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 4b3b; Locales: events->222."
+    },
+    {
+      "source": [
+        "3x3x3 Blindfolded"
+      ],
+      "preferred": [
+        "3x3x3 a Ciegas"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b3; Locales: events->333bf; Payload: announcements#689af58579dcf526caf9a639:content#6.0."
+    },
+    {
+      "source": [
+        "3x3x3 Cube"
+      ],
+      "preferred": [
+        "Cubo 3x3x3"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b7a; Locales: events->333."
+    },
+    {
+      "source": [
+        "3x3x3 Fewest Moves"
+      ],
+      "preferred": [
+        "3x3x3 Menos Movimientos"
+      ],
+      "forbidden": [],
+      "note": "Decisión 8 confirmada por el usuario: etiqueta del evento sin la preposición en. Referencias: Locales: events->333fm; Regulations: 9b4, E2."
+    },
+    {
+      "source": [
+        "3x3x3 Multi-Blind"
+      ],
+      "preferred": [
+        "3x3x3 Múltiple a Ciegas"
+      ],
+      "forbidden": [],
+      "note": "Decisión 9 confirmada por el usuario: 3x3x3 Múltiple a Ciegas. Referencias: Locales: events->333mbf; Regulations: 9b5, H."
+    },
+    {
+      "source": [
+        "3x3x3 One-Handed"
+      ],
+      "preferred": [
+        "3x3x3 a Una Mano"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b1; Locales: events->333oh."
+    },
+    {
+      "source": [
+        "4x4x4 Blindfolded"
+      ],
+      "preferred": [
+        "4x4x4 a Ciegas"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b6; Locales: events->444bf; Payload: announcements#6a759f13ee271725f767823b:content#8.2."
+    },
+    {
+      "source": [
+        "4x4x4 Cube"
+      ],
+      "preferred": [
+        "Cubo 4x4x4"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b7a; Locales: events->444."
+    },
+    {
+      "source": [
+        "5x5x5 Blindfolded"
+      ],
+      "preferred": [
+        "5x5x5 a Ciegas"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b6; Locales: events->555bf; Payload: announcements#6a759f13ee271725f767823b:content#8.2."
+    },
+    {
+      "source": [
+        "5x5x5 Cube"
+      ],
+      "preferred": [
+        "Cubo 5x5x5"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 3l1+; Locales: events->555."
+    },
+    {
+      "source": [
+        "6x6x6 Cube"
+      ],
+      "preferred": [
+        "Cubo 6x6x6"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b2; Locales: events->666; Payload: announcements#6a759f13ee271725f767823b:content#8.0."
+    },
+    {
+      "source": [
+        "7x7x7 Cube"
+      ],
+      "preferred": [
+        "Cubo 7x7x7"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b2; Locales: events->777; Payload: announcements#6a759f13ee271725f767823b:content#8.0."
+    },
+    {
+      "source": [
+        "advancement condition"
+      ],
+      "preferred": [
+        "condición de avance"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->events->advancement_condition."
+    },
+    {
+      "source": [
+        "Approved Registrations"
+      ],
+      "preferred": [
+        "registros aprobados"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->registration_v2->list->approved->title."
+    },
+    {
+      "source": [
+        "attempt",
+        "attempts"
+      ],
+      "preferred": [
+        "intento",
+        "intentos"
+      ],
+      "forbidden": [],
+      "note": "Intento competitivo. No se equipara automáticamente con una solución escrita de Fewest Moves. Referencias: Regulations: I5b; Locales: attempts->attempt_name; Payload: announcements#6a75a0d0ee271725f76789c5:content#19.0."
+    },
+    {
+      "source": [
+        "average",
+        "averages"
+      ],
+      "preferred": [
+        "promedio",
+        "promedios"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario para la acepción estadística. Average of 5 conserva su entrada específica; no equivale a mean en todos los contextos. Referencias: Regulations: 9b1a; Locales: formats->a; Payload: announcements#6a759f13ee271725f767823b:content#3.0."
+    },
+    {
+      "source": [
+        "Average of 5"
+      ],
+      "preferred": [
+        "Promedio de 5"
+      ],
+      "forbidden": [],
+      "note": "Formato con descarte del mejor y el peor intento; no se agrupa con Mean of 3. Referencias: Regulations: 9b1a; Locales: formats->a; Payload: announcements#6a759f13ee271725f767823b:content#3.0."
+    },
+    {
+      "source": [
+        "Best of 1"
+      ],
+      "preferred": [
+        "Mejor de 1"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b2b; Locales: formats->1."
+    },
+    {
+      "source": [
+        "Best of 2"
+      ],
+      "preferred": [
+        "Mejor de 2"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b1b; Locales: formats->2."
+    },
+    {
+      "source": [
+        "Best of 3"
+      ],
+      "preferred": [
+        "Mejor de 3"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b6a; Locales: formats->3."
+    },
+    {
+      "source": [
+        "Best of 5"
+      ],
+      "preferred": [
+        "Mejor de 5"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b3a; Locales: formats->5."
+    },
+    {
+      "source": [
+        "blindfold"
+      ],
+      "preferred": [
+        "antifaz"
+      ],
+      "forbidden": [],
+      "note": "Accesorio utilizado en resoluciones a ciegas; no equivale a la fase a ciegas. Referencias: Regulations: B1b; Payload: announcements#6a75a030ee271725f767871f:content#3.1.0."
+    },
+    {
+      "source": [
+        "blindfolded phase"
+      ],
+      "preferred": [
+        "fase a ciegas"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: B4."
+    },
+    {
+      "source": [
+        "center piece",
+        "center pieces"
+      ],
+      "preferred": [
+        "pieza central",
+        "piezas centrales"
+      ],
+      "forbidden": [],
+      "note": "Pieza central del puzzle; no se agrupa con center cap, que puede referirse solo a su tapa. Referencias: Regulations: 3l1."
+    },
+    {
+      "source": [
+        "Clock"
+      ],
+      "preferred": [
+        "Clock"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 12g; Locales: events->clock; Payload: announcements#6a759f13ee271725f767823b:content#6.0."
+    },
+    {
+      "source": [
+        "competition",
+        "competitions"
+      ],
+      "preferred": [
+        "competición",
+        "competiciones"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario: competición. El corpus de Payload también usa competencia; no se la declara prohibida. Referencias: Regulations: 7e; Locales: activerecord->attributes->competition_medium->competition_id; Payload: announcements#6a75a0d0ee271725f76789c5:content#31.0."
+    },
+    {
+      "source": [
+        "competition area"
+      ],
+      "preferred": [
+        "área de la competición"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 7e."
+    },
+    {
+      "source": [
+        "competition series"
+      ],
+      "preferred": [
+        "serie de competiciones"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->competition_info->part_of_a_series."
+    },
+    {
+      "source": [
+        "competitor",
+        "competitors"
+      ],
+      "preferred": [
+        "competidor",
+        "competidores"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: article:2:title; Locales: competitions->live->results->competitor; Payload: announcements#6a75a0d0ee271725f76789c5:content#20.0."
+    },
+    {
+      "source": [
+        "competitor limit"
+      ],
+      "preferred": [
+        "límite de competidores"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->competition_info->competitor_limit."
+    },
+    {
+      "source": [
+        "Completed Solves"
+      ],
+      "preferred": [
+        "Soluciones completadas"
+      ],
+      "forbidden": [],
+      "note": "Excepción de la decisión 7 confirmada por el usuario: etiqueta del perfil en Locales persons->show->completed_solves. Se conserva Soluciones completadas para evitar que Resoluciones completadas resulte demasiado largo en móvil. No extiende soluciones al resto de las etiquetas solve/solves."
+    },
+    {
+      "source": [
+        "Continental Championship"
+      ],
+      "preferred": [
+        "Campeonato Continental",
+        "Campeonatos Continentales"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 11f1c; Locales: persons->show->championship_podium_levels->continental."
+    },
+    {
+      "source": [
+        "corner piece",
+        "corner pieces"
+      ],
+      "preferred": [
+        "esquina",
+        "esquinas"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 5d."
+    },
+    {
+      "source": [
+        "cumulative time limit"
+      ],
+      "preferred": [
+        "tiempo límite acumulativo"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: A1a+; Locales: competitions->events->time_limit_information->cumulative_time_limit."
+    },
+    {
+      "source": [
+        "cutoff"
+      ],
+      "preferred": [
+        "corte"
+      ],
+      "forbidden": [],
+      "note": "Condición o fase de corte; no es el límite de tiempo de cada intento. Regulations también usa la aclaración tope, sin convertirla en término prohibido. Referencias: Regulations: 9o1; Locales: competitions->events->cutoff."
+    },
+    {
+      "source": [
+        "Cutoff Rounds"
+      ],
+      "preferred": [
+        "rondas con corte"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9o1."
+    },
+    {
+      "source": [
+        "Delegate",
+        "Delegates",
+        "WCA Delegate",
+        "WCA Delegates",
+        "WCA Delegate(s)"
+      ],
+      "preferred": [
+        "Delegado",
+        "Delegados"
+      ],
+      "forbidden": [],
+      "note": "Cargo de la WCA; las expresiones compuestas de rango tienen sus propias entradas. Referencias: Regulations: 2s+; Locales: enums->user_roles->status->delegate_regions->delegate; Payload: nav:entry[68419100ab86079251f467ef].entries[6883023e081cb0138503d080].displayText."
+    },
+    {
+      "source": [
+        "Delegate Report"
+      ],
+      "preferred": [
+        "reporte del Delegado"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario: reporte del Delegado, frente a informe del Delegado. Se mantiene el título del cargo. Referencias: Regulations: 2s+; Locales: incidents_log->tags->delegate_report."
+    },
+    {
+      "source": [
+        "disqualification"
+      ],
+      "preferred": [
+        "descalificación"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: B3b."
+    },
+    {
+      "source": [
+        "DNF"
+      ],
+      "preferred": [
+        "DNF"
+      ],
+      "forbidden": [],
+      "note": "Resultado Did Not Finish; el corpus conserva la sigla y la diferencia de DNS. Referencias: Regulations: 9f7; Locales: competitions->live->admin->warnings->DNS."
+    },
+    {
+      "source": [
+        "DNS"
+      ],
+      "preferred": [
+        "DNS"
+      ],
+      "forbidden": [],
+      "note": "Resultado Did Not Start; el corpus conserva la sigla y la diferencia de DNF. Referencias: Regulations: 9f7; Locales: competitions->live->admin->warnings->DNS."
+    },
+    {
+      "source": [
+        "Dual Rounds"
+      ],
+      "preferred": [
+        "rondas duales"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9o2; Locales: competitions->competition_form->hints->website->scoretaking_software."
+    },
+    {
+      "source": [
+        "edge piece"
+      ],
+      "preferred": [
+        "arista"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 5b5f++."
+    },
+    {
+      "source": [
+        "event",
+        "events"
+      ],
+      "preferred": [
+        "evento",
+        "eventos"
+      ],
+      "forbidden": [],
+      "note": "Modalidad de competición de la WCA; no confundir con competición completa. Referencias: Regulations: article:9:title; Locales: competitions->results_table->event; Payload: about-us-page:blocks[68517adc7988e1047e06a85e].content#1.6."
+    },
+    {
+      "source": [
+        "extra attempt",
+        "extra attempts"
+      ],
+      "preferred": [
+        "intento extra",
+        "intentos extra"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: A7g++."
+    },
+    {
+      "source": [
+        "face moves"
+      ],
+      "preferred": [
+        "movimientos de caras",
+        "movimientos de las caras"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 12d1."
+    },
+    {
+      "source": [
+        "Face Turning Octahedron",
+        "FTO"
+      ],
+      "preferred": [
+        "Face Turning Octahedron",
+        "FTO"
+      ],
+      "forbidden": [],
+      "note": "Nombre del evento conservado en inglés y su abreviatura. La forma corta FTO se usa como etiqueta en Locales y la forma desarrollada en Payload; no se infiere ninguna traducción nueva. Referencias: Locales: events->fto; Payload: announcements#6a759f13ee271725f767823b:summary."
+    },
+    {
+      "source": [
+        "Final round"
+      ],
+      "preferred": [
+        "ronda final"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b7b."
+    },
+    {
+      "source": [
+        "Final Stage"
+      ],
+      "preferred": [
+        "fase final"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: I2a1."
+    },
+    {
+      "source": [
+        "First round"
+      ],
+      "preferred": [
+        "Primera ronda"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9v5a; Locales: rounds->1->name."
+    },
+    {
+      "source": [
+        "Full Delegate",
+        "Full Delegates"
+      ],
+      "preferred": [
+        "Delegado Pleno",
+        "Delegados Plenos"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: trainee_delegate_application->errors->spoken_delegate_required; Payload: announcements#6a75a0d0ee271725f76789c5:content#32.0."
+    },
+    {
+      "source": [
+        "guest",
+        "guests"
+      ],
+      "preferred": [
+        "acompañante",
+        "acompañantes"
+      ],
+      "forbidden": [],
+      "note": "Decisión 11 confirmada por el usuario: acompañante(s). Referencias: Locales: activerecord->attributes->registration->guests; competitions->competition_form->choices->guests_enabled->true."
+    },
+    {
+      "source": [
+        "H2H"
+      ],
+      "preferred": [
+        "H2H"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: formats->short->h."
+    },
+    {
+      "source": [
+        "Head to Head"
+      ],
+      "preferred": [
+        "Head to Head"
+      ],
+      "forbidden": [],
+      "note": "El corpus de Regulations conserva esta denominación en inglés; H2H es la abreviatura usada en Locales. Referencias: Regulations: article:I:title."
+    },
+    {
+      "source": [
+        "incident",
+        "incidents"
+      ],
+      "preferred": [
+        "incidente",
+        "incidentes"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: article:11:title; Locales: activerecord->attributes->delegate_report->incidents; Payload: nav:entry[688b48eebcb1fe1f5742b748].entries[69613d468e47a978bff63e8f].displayText."
+    },
+    {
+      "source": [
+        "inspection"
+      ],
+      "preferred": [
+        "inspección"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: A3."
+    },
+    {
+      "source": [
+        "judge",
+        "judges"
+      ],
+      "preferred": [
+        "juez",
+        "jueces"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 1e; Locales: competitions->events->time_limit_information->time_limit_html; Payload: announcements#6a75a0d0ee271725f76789c5:content#6.0.0."
+    },
+    {
+      "source": [
+        "Junior Delegate"
+      ],
+      "preferred": [
+        "Delegado Junior"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: enums->user_roles->status->delegate_regions->junior_delegate; Payload: announcements#6a75a0d0ee271725f76789c5:content#32.0."
+    },
+    {
+      "source": [
+        "Lead Delegate"
+      ],
+      "preferred": [
+        "Delegado principal"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->competition_form->labels->staff->lead_delegate_id; Payload: announcements#6a75a0d0ee271725f76789c5:content#37.0."
+    },
+    {
+      "source": [
+        "live results"
+      ],
+      "preferred": [
+        "resultados en vivo"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->live->title; Payload: nav:entry[693854fcfea45cbd3dc19249].displayText."
+    },
+    {
+      "source": [
+        "mat"
+      ],
+      "preferred": [
+        "tapete"
+      ],
+      "forbidden": [],
+      "note": "Superficie de apoyo del cronómetro en Regulations. Referencias: Regulations: 7f1b."
+    },
+    {
+      "source": [
+        "mean",
+        "means",
+        "arithmetic mean"
+      ],
+      "preferred": [
+        "media",
+        "medias",
+        "media aritmética"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario para la acepción estadística. El verbo inglés mean (significar) es otra acepción y no se traduce por media. El chequeo léxico puede advertir falsos positivos en esos usos verbales. Referencias: Regulations: 9b2a; Locales: competitions->live->results->mean."
+    },
+    {
+      "source": [
+        "Mean of 3"
+      ],
+      "preferred": [
+        "Media de 3"
+      ],
+      "forbidden": [],
+      "note": "Formato de tres intentos; no se agrupa con Average of 5. Referencias: Regulations: 9b2a; Locales: formats->m."
+    },
+    {
+      "source": [
+        "medal collection"
+      ],
+      "preferred": [
+        "medallero"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: persons->show->medal_collection."
+    },
+    {
+      "source": [
+        "Megaminx"
+      ],
+      "preferred": [
+        "Megaminx"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 10f2; Locales: events->minx."
+    },
+    {
+      "source": [
+        "memorization phase"
+      ],
+      "preferred": [
+        "fase de memorización"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: B3."
+    },
+    {
+      "source": [
+        "misalignment"
+      ],
+      "preferred": [
+        "desalineación"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 10f."
+    },
+    {
+      "source": [
+        "moves"
+      ],
+      "preferred": [
+        "movimientos"
+      ],
+      "forbidden": [],
+      "note": "Movimientos del puzzle en el contexto técnico. Se omite move como fuente aislada porque también es el verbo mover registros. Referencias: Regulations: 12d1; Locales: common->solve_time->unit_moves; Payload: announcements#689af58579dcf526caf9a639:content#3.0."
+    },
+    {
+      "source": [
+        "National Championship"
+      ],
+      "preferred": [
+        "Campeonato Nacional",
+        "Campeonatos Nacionales"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 11f1c; Locales: persons->show->championship_podium_levels->national."
+    },
+    {
+      "source": [
+        "newcomer",
+        "newcomers",
+        "first-timer",
+        "first-timers"
+      ],
+      "preferred": [
+        "primerizo",
+        "primerizos"
+      ],
+      "forbidden": [],
+      "note": "Competidor que participa por primera vez, según el contexto. La traducción novatos también aparece y no se declara prohibida. Referencias: Locales: competitions->live->admin->first_timer."
+    },
+    {
+      "source": [
+        "Non-Competing Registrations"
+      ],
+      "preferred": [
+        "registros de no competidores"
+      ],
+      "forbidden": [],
+      "note": "Preferencia de registro confirmada por el usuario; la variante inscripciones también aparece en Locales. Referencias: Locales: competitions->registration_v2->list->non_competing->title."
+    },
+    {
+      "source": [
+        "official events"
+      ],
+      "preferred": [
+        "eventos oficiales"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9b; Locales: about->who_we_are_content_html; Payload: about-us-page:blocks[68517adc7988e1047e06a85e].content#1.6."
+    },
+    {
+      "source": [
+        "on-site registration",
+        "on the spot registrations"
+      ],
+      "preferred": [
+        "registro in situ",
+        "registros in situ"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: activity->registration."
+    },
+    {
+      "source": [
+        "organization team",
+        "organization teams"
+      ],
+      "preferred": [
+        "equipo organizador",
+        "equipos organizadores"
+      ],
+      "forbidden": [],
+      "note": "Equipo a cargo de la logística de la competición. Referencias: Regulations: 1b; Locales: competitions->competition_info->organization_team; Payload: privacy-page:blocks[68c3086b96b8372c808b89d9].content#1.0.0."
+    },
+    {
+      "source": [
+        "organizer",
+        "organizers",
+        "Organizer(s)"
+      ],
+      "preferred": [
+        "organizador",
+        "organizadores",
+        "Organizador(es)"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 4b2++; Locales: competitions->competition_form->labels->staff->organizer_ids; Payload: announcements#6a75a0d0ee271725f76789c5:content#40.0."
+    },
+    {
+      "source": [
+        "Outer Block Turn Metric",
+        "OBTM"
+      ],
+      "preferred": [
+        "Métrica de Giros de Bloques Externos",
+        "OBTM"
+      ],
+      "forbidden": [],
+      "note": "Se conserva la sigla de la métrica. Referencias: Regulations: 12a5."
+    },
+    {
+      "source": [
+        "outer slice"
+      ],
+      "preferred": [
+        "capa externa"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 12a1."
+    },
+    {
+      "source": [
+        "Pending Registrations"
+      ],
+      "preferred": [
+        "registros pendientes"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->registration_v2->list->pending->title."
+    },
+    {
+      "source": [
+        "personal record",
+        "personal records"
+      ],
+      "preferred": [
+        "récord personal",
+        "récords personales"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 11f1a; Locales: persons->show->personal_records."
+    },
+    {
+      "source": [
+        "podium",
+        "podiums"
+      ],
+      "preferred": [
+        "podio",
+        "podios"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9p2a+; Locales: competitions->live->podiums->title."
+    },
+    {
+      "source": [
+        "puzzle",
+        "puzzles"
+      ],
+      "preferred": [
+        "puzzle",
+        "puzzles"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario: puzzle. No equivale siempre a cubo; rompecabezas aparece en Payload. Referencias: Regulations: article:3:title; Locales: faq->answers->regulations1->title."
+    },
+    {
+      "source": [
+        "puzzle cover"
+      ],
+      "preferred": [
+        "tapacubos"
+      ],
+      "forbidden": [],
+      "note": "Decisión 16 confirmada por el usuario: tapacubos. Objeto que cubre el puzzle; no es el tapete del cronómetro. Esta elección viene de la revisión del usuario, no del corpus anterior, que usaba cobertura o cubierta. Referencias: Regulations: B2c; B2f."
+    },
+    {
+      "source": [
+        "puzzle defect",
+        "puzzle defects"
+      ],
+      "preferred": [
+        "defecto",
+        "defectos"
+      ],
+      "forbidden": [],
+      "note": "Decisión 14 confirmada por el usuario: defecto, frente a desperfecto. Defecto de un puzzle en el contexto técnico. Referencias: Regulations: article:5:title; 5a; 5c+; 5d3."
+    },
+    {
+      "source": [
+        "puzzle state"
+      ],
+      "preferred": [
+        "estado del puzzle"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 12i+."
+    },
+    {
+      "source": [
+        "Pyraminx"
+      ],
+      "preferred": [
+        "Pyraminx"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 12e; Locales: events->pyram."
+    },
+    {
+      "source": [
+        "qualification",
+        "qualifications"
+      ],
+      "preferred": [
+        "calificación"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario: calificación, frente a clasificación. No equivale al ranking deportivo. Referencias: Locales: competitions->events->qualification."
+    },
+    {
+      "source": [
+        "qualification round"
+      ],
+      "preferred": [
+        "ronda de calificación"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: rounds->0->name."
+    },
+    {
+      "source": [
+        "qualification times"
+      ],
+      "preferred": [
+        "tiempos de calificación"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->events->time_limit_information->qualification_all_events_html."
+    },
+    {
+      "source": [
+        "Quarterfinal Stage"
+      ],
+      "preferred": [
+        "fase de cuartos de final"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: I2b3."
+    },
+    {
+      "source": [
+        "random state"
+      ],
+      "preferred": [
+        "estado aleatorio"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 4b3e."
+    },
+    {
+      "source": [
+        "ranking",
+        "rankings"
+      ],
+      "preferred": [
+        "ranking",
+        "rankings"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario: rankings, sin tilde. El corpus también usa clasificaciones y ránkings. No se confunde con qualification, cuya referencia es calificación. Referencias: Regulations: 9i; Locales: advancement_condition->short->ranking; Payload: tools#69380ce906895ea18fb5915f:description."
+    },
+    {
+      "source": [
+        "refund",
+        "refunds"
+      ],
+      "preferred": [
+        "reembolso",
+        "reembolsos"
+      ],
+      "forbidden": [],
+      "note": "Decisión 13 confirmada por el usuario para el uso nominal: reembolso. En uso verbal corresponde la flexión de reembolsar según la oración. Referencias: Locales: competitions->competition_form->labels->entry_fees->refund_policy_limit_date; competitions->errors->waiting_list_deadline_before_refund_date."
+    },
+    {
+      "source": [
+        "Regional Delegate"
+      ],
+      "preferred": [
+        "Delegado Regional"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: enums->user_roles->status->delegate_regions->regional_delegate."
+    },
+    {
+      "source": [
+        "Regional Organizations"
+      ],
+      "preferred": [
+        "Organizaciones regionales"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: layouts->navigation->organizations; Payload: nav:entry[68419100ab86079251f467ef].entries[68830e60081cb0138503d082].displayText."
+    },
+    {
+      "source": [
+        "regional record",
+        "regional records"
+      ],
+      "preferred": [
+        "récord regional",
+        "récords regionales"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 11f1a."
+    },
+    {
+      "source": [
+        "registration",
+        "registrations"
+      ],
+      "preferred": [
+        "registro",
+        "registros"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario para el proceso de anotarse en una competición; no corresponde a un log o récord deportivo. Referencias: Locales: competitions->live->admin->registration; Payload: privacy-page:blocks[68c307e796b8372c808b89d6].content#1.1.0."
+    },
+    {
+      "source": [
+        "registration close"
+      ],
+      "preferred": [
+        "cierre del registro"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->competition_form->labels->registration->closing_date_time."
+    },
+    {
+      "source": [
+        "registration fee",
+        "registration fees"
+      ],
+      "preferred": [
+        "cuota de registro",
+        "cuotas de registro"
+      ],
+      "forbidden": [],
+      "note": "Decisión 12 confirmada por el usuario: cuota de registro. No equivale a todo el proceso de registro. Referencias: Locales: competitions->competition_info->entry_fee_is; registrations->payment_form->errors->already_paid."
+    },
+    {
+      "source": [
+        "registration open"
+      ],
+      "preferred": [
+        "apertura del registro"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->competition_form->labels->registration->opening_date_time."
+    },
+    {
+      "source": [
+        "registration page"
+      ],
+      "preferred": [
+        "página de registro"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->competition_form->labels->website->external_registration_page."
+    },
+    {
+      "source": [
+        "registration period"
+      ],
+      "preferred": [
+        "período de registro"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->competition_info->registration_period->label."
+    },
+    {
+      "source": [
+        "registration requirements"
+      ],
+      "preferred": [
+        "requisitos de registro"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->competition_info->registration_requirements."
+    },
+    {
+      "source": [
+        "Rejected Registrations"
+      ],
+      "preferred": [
+        "registros rechazados"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: competitions->registration_v2->list->rejected->title."
+    },
+    {
+      "source": [
+        "Reviewing Delegate"
+      ],
+      "preferred": [
+        "Delegado revisor"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: trainee_delegate_application->form->reviewing_delegate."
+    },
+    {
+      "source": [
+        "rotations"
+      ],
+      "preferred": [
+        "rotaciones"
+      ],
+      "forbidden": [],
+      "note": "Rotaciones del puzzle completo, según la notación de Regulations 12a4. Referencias: Regulations: 12a4."
+    },
+    {
+      "source": [
+        "round",
+        "rounds"
+      ],
+      "preferred": [
+        "ronda",
+        "rondas"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: I2; Locales: competitions->results_table->round."
+    },
+    {
+      "source": [
+        "score taker",
+        "score takers"
+      ],
+      "preferred": [
+        "encargado de recoger resultados",
+        "encargados de recoger resultados",
+        "encargados de recoger y compilar los resultados"
+      ],
+      "forbidden": [],
+      "note": "Función definida en Regulations 1g y 1g1; no es el nombre de la hoja de resultados. Referencias: Regulations: 1g."
+    },
+    {
+      "source": [
+        "scorecard",
+        "scorecards",
+        "score sheet",
+        "score sheets"
+      ],
+      "preferred": [
+        "hoja de resultados",
+        "hojas de resultados"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario: hoja de resultados. No se confunde la hoja individual con una clasificación general. Referencias: Regulations: A7c7; Payload: tools#69380ce906895ea18fb5915f:description."
+    },
+    {
+      "source": [
+        "scramble",
+        "scrambles"
+      ],
+      "preferred": [
+        "mezcla",
+        "mezclas"
+      ],
+      "forbidden": [],
+      "note": "Uso nominal: mezcla o secuencia de mezcla. En uso verbal, la forma flexionada de mezclar depende de la oración; las comprobaciones automáticas pueden requerir revisión. Referencias: Regulations: 4a; Locales: competitions->scrambles_table->scramble; Payload: nav:entry[688b48eebcb1fe1f5742b748].entries[688b493ebcb1fe1f5742b74b].displayText."
+    },
+    {
+      "source": [
+        "scramble sequence",
+        "scramble sequences"
+      ],
+      "preferred": [
+        "secuencia de mezcla",
+        "secuencias de mezcla"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 11j3+."
+    },
+    {
+      "source": [
+        "scrambler",
+        "scramblers"
+      ],
+      "preferred": [
+        "mezclador",
+        "mezcladores"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 4a."
+    },
+    {
+      "source": [
+        "scrambling orientation"
+      ],
+      "preferred": [
+        "orientación al mezclar"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 4d."
+    },
+    {
+      "source": [
+        "Second round"
+      ],
+      "preferred": [
+        "Segunda ronda"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 9v5a; Locales: rounds->2->name."
+    },
+    {
+      "source": [
+        "Semi Final"
+      ],
+      "preferred": [
+        "Semifinal"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: rounds->3->name."
+    },
+    {
+      "source": [
+        "Semifinal Stage"
+      ],
+      "preferred": [
+        "fase de semifinales"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: I2b2."
+    },
+    {
+      "source": [
+        "Senior Delegate",
+        "Senior Delegates"
+      ],
+      "preferred": [
+        "Delegado Senior",
+        "Delegados Senior"
+      ],
+      "forbidden": [],
+      "note": "Grafía Senior sin tilde, coherente con la decisión 6 confirmada por el usuario para Miembro Senior. Referencias: Locales: enums->user_roles->status->delegate_regions->senior_delegate; Payload: announcements#6a75a0d0ee271725f76789c5:content#47.0."
+    },
+    {
+      "source": [
+        "Senior Member"
+      ],
+      "preferred": [
+        "Miembro Senior",
+        "Miembros Senior"
+      ],
+      "forbidden": [],
+      "note": "Decisión 6 confirmada por el usuario: Miembro Senior, sin tilde en Senior. Referencias: Locales: enums->user_roles->status->teams_committees->senior_member; Payload: announcements#6a75a030ee271725f767871f:content#8.0."
+    },
+    {
+      "source": [
+        "Skewb"
+      ],
+      "preferred": [
+        "Skewb"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 12h; Locales: events->skewb; Payload: announcements#6a759f13ee271725f767823b:content#2.0."
+    },
+    {
+      "source": [
+        "solve",
+        "solves",
+        "single solve",
+        "Single"
+      ],
+      "preferred": [
+        "resolución",
+        "resoluciones"
+      ],
+      "forbidden": [],
+      "note": "Decisión 7 confirmada por el usuario para el uso nominal y la etiqueta estadística Single: resolución. Excepción exclusiva de la etiqueta del perfil persons->show->completed_solves: Completed Solves corresponde a Soluciones completadas por su longitud en móvil; tiene una entrada específica. La solución escrita de Fewest Moves (solution) es otro concepto. Los usos verbales de solve y adjetivales de single se interpretan según la oración. Referencias: Locales: common->solves; common->single; results->table_elements->solves; Regulations: A4, A5, A6."
+    },
+    {
+      "source": [
+        "solved state"
+      ],
+      "preferred": [
+        "estado resuelto"
+      ],
+      "forbidden": [],
+      "note": "Estado del puzzle, no el procedimiento de resolverlo. Referencias: Regulations: article:10:title."
+    },
+    {
+      "source": [
+        "solving station",
+        "solving stations"
+      ],
+      "preferred": [
+        "estación de resolución",
+        "estaciones de resolución"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 7f; Payload: announcements#6a75a0d0ee271725f76789c5:content#22.0."
+    },
+    {
+      "source": [
+        "speedsolving timer"
+      ],
+      "preferred": [
+        "cronómetro de speedsolving"
+      ],
+      "forbidden": [
+        "Stackmat"
+      ],
+      "note": "Término genérico definido en Regulations 7f1a. El inglés del corpus no lo restringe a la marca Stackmat. Referencias: Regulations: 7f1b. El usuario indicó expresamente evitar Stackmat; se registra como término prohibido al traducir la referencia al cronómetro."
+    },
+    {
+      "source": [
+        "Square-1"
+      ],
+      "preferred": [
+        "Square-1"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 12c; Locales: events->sq1."
+    },
+    {
+      "source": [
+        "sticker",
+        "stickers"
+      ],
+      "preferred": [
+        "sticker",
+        "stickers"
+      ],
+      "forbidden": [],
+      "note": "Decisión 15 confirmada por el usuario para las piezas adhesivas del puzzle: sticker(s). Referencias: Regulations: 3l2; 5a; E3c."
+    },
+    {
+      "source": [
+        "stopwatch"
+      ],
+      "preferred": [
+        "cronómetro de mano"
+      ],
+      "forbidden": [
+        "Stackmat"
+      ],
+      "note": "Dispositivo diferenciado del cronómetro de speedsolving en el corpus. Referencias: Regulations: 7f1c. El usuario indicó expresamente evitar Stackmat; se registra como término prohibido al traducir la referencia al cronómetro."
+    },
+    {
+      "source": [
+        "Teams and Committees"
+      ],
+      "preferred": [
+        "Equipos y Comités"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: layouts->navigation->teams; Payload: announcements#6a75a0d0ee271725f76789c5:content#38.0."
+    },
+    {
+      "source": [
+        "time limit",
+        "time limits"
+      ],
+      "preferred": [
+        "tiempo límite",
+        "tiempos límite"
+      ],
+      "forbidden": [],
+      "note": "Preferencia confirmada por el usuario: tiempo límite, frente a límite de tiempo. Referencias: Regulations: E2b; Locales: competitions->events->time_limit."
+    },
+    {
+      "source": [
+        "time penalty",
+        "time penalties"
+      ],
+      "preferred": [
+        "penalización de tiempo",
+        "penalizaciones de tiempo"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: A4e."
+    },
+    {
+      "source": [
+        "timer",
+        "timers"
+      ],
+      "preferred": [
+        "cronómetro",
+        "cronómetros"
+      ],
+      "forbidden": [
+        "Stackmat"
+      ],
+      "note": "Referencia elegida: cronómetro. El usuario indicó expresamente evitar Stackmat; se registra como término prohibido al traducir referencias al cronómetro. Referencias: Regulations: 7f1c; 7f1a."
+    },
+    {
+      "source": [
+        "TNoodle"
+      ],
+      "preferred": [
+        "TNoodle"
+      ],
+      "forbidden": [],
+      "note": "Nombre propio del generador de mezclas. Referencias: Locales: score_tools->tools->tnoodle->title; Payload: tools#69380d3506895ea18fb59276:description."
+    },
+    {
+      "source": [
+        "Trainee Delegate",
+        "Trainee Delegates",
+        "WCA Trainee Delegate(s)",
+        "WCA Trainee Delegates"
+      ],
+      "preferred": [
+        "Delegado en prácticas",
+        "Delegados en prácticas",
+        "Delegado(s) en prácticas"
+      ],
+      "forbidden": [],
+      "note": "Denominación respaldada por las 11 entradas de Locales y por la preferencia expresada por el usuario. No se incorporan traducciones inventadas. Referencias: Locales: enums->user_roles->status->delegate_regions->trainee_delegate."
+    },
+    {
+      "source": [
+        "venue",
+        "venues"
+      ],
+      "preferred": [
+        "lugar",
+        "lugares"
+      ],
+      "forbidden": [],
+      "note": "Decisión 10 confirmada por el usuario para el lugar de la competición: lugar. Referencias: Locales: competitions->competition_info->venue; competitions->competition_info->location_and_venue; competitions->schedule->select_a_venue_to_view."
+    },
+    {
+      "source": [
+        "volunteer",
+        "volunteers"
+      ],
+      "preferred": [
+        "voluntario",
+        "voluntarios",
+        "voluntarias"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: homepage->volunteer->title; Payload: home:layout[6a16f20fd8e968eb39d1b856].right[6a16f489d8e968eb39d1b85b].heading."
+    },
+    {
+      "source": [
+        "waiting list"
+      ],
+      "preferred": [
+        "lista de espera"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: simple_form->options->registration->status->pending."
+    },
+    {
+      "source": [
+        "WCA Appeals Committee"
+      ],
+      "preferred": [
+        "Comité de Apelaciones WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wapc."
+    },
+    {
+      "source": [
+        "WCA Archive Team"
+      ],
+      "preferred": [
+        "Equipo de Archivo WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wat."
+    },
+    {
+      "source": [
+        "WCA Board of Directors",
+        "WCA Board",
+        "Board of Directors"
+      ],
+      "preferred": [
+        "Junta Directiva WCA",
+        "Junta Directiva de la WCA",
+        "Junta Directiva"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: user_groups->group_types->board; Payload: announcements#689af55579dcf526caf9a5ad:content#0.1.1."
+    },
+    {
+      "source": [
+        "WCA Chair"
+      ],
+      "preferred": [
+        "Presidente WCA",
+        "Presidente de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: enums->user_roles->status->officers->chair; Payload: announcements#689af55579dcf526caf9a5ad:content#2.0."
+    },
+    {
+      "source": [
+        "WCA Chief Operating Officer"
+      ],
+      "preferred": [
+        "Director de Operaciones WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: enums->user_roles->status->officers->chief_operating_officer."
+    },
+    {
+      "source": [
+        "WCA Communication Team"
+      ],
+      "preferred": [
+        "Equipo de Comunicación WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wct."
+    },
+    {
+      "source": [
+        "WCA Competition Announcement Team",
+        "Competition Announcement Team"
+      ],
+      "preferred": [
+        "Equipo de Anuncio de Competiciones"
+      ],
+      "forbidden": [],
+      "note": "Decisión 5 confirmada por el usuario: Equipo de Anuncio de Competiciones, con Anuncio en singular. WCAT conserva su sigla. Referencias: Locales: page->teams_committees_councils->groups_name->wcat; competitions->competition_form->wcat; Payload: announcements#6a75a0d0ee271725f76789c5:content#39.2.0."
+    },
+    {
+      "source": [
+        "WCA Executive Assistants Team"
+      ],
+      "preferred": [
+        "Equipo de Asistentes Ejecutivos WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->weat."
+    },
+    {
+      "source": [
+        "WCA Executive Director"
+      ],
+      "preferred": [
+        "Director Ejecutivo WCA",
+        "Director Ejecutivo de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: enums->user_roles->status->officers->executive_director; Payload: announcements#689af55579dcf526caf9a5ad:content#1.0."
+    },
+    {
+      "source": [
+        "WCA Financial Committee"
+      ],
+      "preferred": [
+        "Comité Financiero WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wfc."
+    },
+    {
+      "source": [
+        "WCA ID"
+      ],
+      "preferred": [
+        "WCA ID"
+      ],
+      "forbidden": [],
+      "note": "Identificador de persona de la WCA; no equivale al identificador de usuario local. Referencias: Regulations: A7c6+; Locales: common->user->wca_id."
+    },
+    {
+      "source": [
+        "WCA Integrity Committee"
+      ],
+      "preferred": [
+        "Comité de Integridad WCA",
+        "Comité de Integridad de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wic; Payload: announcements#6a75a030ee271725f767871f:content#2.0."
+    },
+    {
+      "source": [
+        "WCA Live"
+      ],
+      "preferred": [
+        "WCA Live"
+      ],
+      "forbidden": [],
+      "note": "Nombre propio de la herramienta. Referencias: Locales: layouts->navigation->wca_live; Payload: tools#69381ca406895ea18fb5c1f1:description."
+    },
+    {
+      "source": [
+        "WCA Major Championship Team"
+      ],
+      "preferred": [
+        "Equipo de Grandes Campeonatos WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wmct."
+    },
+    {
+      "source": [
+        "WCA Marketing Team"
+      ],
+      "preferred": [
+        "Equipo de Marketing WCA",
+        "Equipo de Marketing de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wmt; Payload: logo-page:blocks[6a6a071cff7e670817d7dd8a].content#0.2."
+    },
+    {
+      "source": [
+        "WCA Officers",
+        "Officers"
+      ],
+      "preferred": [
+        "Directivos"
+      ],
+      "forbidden": [],
+      "note": "Decisión 1 confirmada por el usuario: Directivos. Nombre del conjunto de cargos de la WCA; no equivale a officials de una competición. Referencias: Locales: layouts->navigation->officers_and_board; Payload: announcements#689af55579dcf526caf9a5ad:title."
+    },
+    {
+      "source": [
+        "WCA Quality Assurance Committee",
+        "Quality Assurance Committee"
+      ],
+      "preferred": [
+        "Comité de Control de Calidad"
+      ],
+      "forbidden": [],
+      "note": "Decisión 4 confirmada por el usuario: Comité de Control de Calidad. WQAC conserva su sigla. Referencias: Locales: page->teams_committees_councils->groups_name->wqac; Payload: announcements#6a75a0d0ee271725f76789c5:content#49.2."
+    },
+    {
+      "source": [
+        "WCA Regulations"
+      ],
+      "preferred": [
+        "Reglamento de la WCA",
+        "Reglamento"
+      ],
+      "forbidden": [],
+      "note": "Nombre del documento. Se omite Regulations aislado como fuente para no activar el término por enlaces internos regulations:regulation de reglas individuales. Referencias: Regulations: notes/wca-regulations:title; Locales: regulations_translations->title; Payload: announcements#689af5b379dcf526caf9a6b3:title."
+    },
+    {
+      "source": [
+        "WCA Regulations Committee",
+        "Regulations Committee"
+      ],
+      "preferred": [
+        "Comité Reglamentario"
+      ],
+      "forbidden": [],
+      "note": "Decisión 3 confirmada por el usuario: Comité Reglamentario. WRC conserva su sigla. Referencias: Locales: page->teams_committees_councils->groups_name->wrc; Regulations: 11f1+; Payload: announcements#6a75a0d0ee271725f76789c5:content#39.0.0."
+    },
+    {
+      "source": [
+        "WCA Results Team"
+      ],
+      "preferred": [
+        "Equipo de Resultados WCA",
+        "Equipo de Resultados de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wrt; Payload: announcements#6a75a0d0ee271725f76789c5:content#39.1.0."
+    },
+    {
+      "source": [
+        "WCA Secretary"
+      ],
+      "preferred": [
+        "Secretario de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Decisión 2 confirmada por el usuario: Secretario de la WCA, sin Corporativo. Referencias: Locales: enums->user_roles->status->officers->secretary; Payload: announcements#689af55579dcf526caf9a5ad:content#3.0."
+    },
+    {
+      "source": [
+        "WCA Software Team"
+      ],
+      "preferred": [
+        "Equipo de Software WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wst."
+    },
+    {
+      "source": [
+        "WCA Sports Organization Team"
+      ],
+      "preferred": [
+        "Equipo de Organización Deportiva WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: page->teams_committees_councils->groups_name->wsot."
+    },
+    {
+      "source": [
+        "WCA Treasurer"
+      ],
+      "preferred": [
+        "Tesorero WCA",
+        "Tesorero de la WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: enums->user_roles->status->officers->treasurer; Payload: announcements#689af55579dcf526caf9a5ad:content#4.0."
+    },
+    {
+      "source": [
+        "WCA Vice-Chair"
+      ],
+      "preferred": [
+        "Vicepresidente WCA"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Locales: enums->user_roles->status->officers->vice_chair."
+    },
+    {
+      "source": [
+        "WCIF"
+      ],
+      "preferred": [
+        "WCIF"
+      ],
+      "forbidden": [],
+      "note": "Sigla del formato de intercambio conservada en los textos del corpus. Referencias: Locales: registrations->import->errors->invalid_wcif; Payload: tools#69381d5106895ea18fb5c4b8:description."
+    },
+    {
+      "source": [
+        "World Championship",
+        "World Championships"
+      ],
+      "preferred": [
+        "Campeonato Mundial",
+        "Campeonatos Mundiales"
+      ],
+      "forbidden": [],
+      "note": "Terminología documentada en el corpus local. Referencias: Regulations: 11f1c; Locales: competitions->competition_form->championship_types->world; Payload: announcements#6a759f13ee271725f767823b:content#6.0."
+    },
+    {
+      "source": [
+        "World Cube Association",
+        "WCA"
+      ],
+      "preferred": [
+        "World Cube Association",
+        "WCA"
+      ],
+      "forbidden": [],
+      "note": "Nombre propio y sigla de la organización; el corpus los conserva en inglés. Referencias: Regulations: notes/wca-regulations:title; Locales: common->user->wca_id; Payload: speedcubing-history-page:blocks[68b88a84ac1f481314689445].title."
+    }
+  ]
+}

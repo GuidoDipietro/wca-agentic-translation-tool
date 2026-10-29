@@ -74,3 +74,49 @@ class GlossaryTests(unittest.TestCase):
         terms = glossary_terms(tbx)
         self.assertEqual(terms[0]['source'], ['delegate', 'delegates'])
         self.assertEqual(terms[0]['preferred'], ['delegado', 'delegadas'])
+
+    def terminology_report(self, source, target, glossary):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            po = polib.POFile()
+            po.metadata = {'Language': 'es_419', 'Content-Type': 'text/plain; charset=UTF-8'}
+            po.append(polib.POEntry(msgid=source, msgstr=''))
+            (root / 'base.po').write_text(str(po))
+            po[0].msgstr = target
+            (root / 'proposed.po').write_text(str(po))
+            review = Review(root / 'base.po', root / 'proposed.po', root / 'review', glossary=glossary, source_checks=True)
+            review.decide(review.changed[0], {'status': 'accepted'}, 0)
+            return [w for w in review.validate_export(1)['warnings'] if w['code'] in ('preferred_term', 'forbidden_term')]
+
+    def test_specific_profile_label_overrides_generic_solves(self):
+        glossary = [term('solves', 'resoluciones'), term('Completed Solves', 'Soluciones completadas')]
+        self.assertEqual(self.terminology_report('Completed Solves', 'Soluciones completadas', glossary), [])
+        self.assertEqual(self.terminology_report('Solves', 'Resoluciones', glossary), [])
+        warnings = self.terminology_report('Solves', 'Soluciones', glossary)
+        self.assertEqual([w['code'] for w in warnings], ['preferred_term'])
+        self.assertEqual(self.terminology_report('Completed Solves', 'Resoluciones completadas', glossary)[0]['code'], 'preferred_term')
+
+    def test_specific_puzzle_cover_does_not_require_puzzle_in_translation(self):
+        glossary = [term('puzzle', 'puzzle'), term('puzzle cover', 'tapacubos')]
+        self.assertEqual(self.terminology_report('Lift the puzzle cover', 'Levantá el tapacubos', glossary), [])
+        self.assertEqual(self.terminology_report('The puzzle cover and the puzzle', 'El tapacubos y el puzzle', glossary), [])
+        warnings = self.terminology_report('The puzzle cover and the puzzle', 'El tapacubos', glossary)
+        self.assertEqual([w['code'] for w in warnings], ['preferred_term'])
+
+    def test_specific_preference_keeps_generic_and_specific_forbidden_checks(self):
+        glossary = [term('timer', 'cronómetro', ['Stackmat']), term('speedsolving timer', 'cronómetro de speedsolving', ['Stackmat'])]
+        self.assertEqual(self.terminology_report('Speedsolving timer', 'Cronómetro de speedsolving', glossary), [])
+        warnings = self.terminology_report('Speedsolving timer', 'Cronómetro de speedsolving Stackmat', glossary)
+        self.assertEqual([w['code'] for w in warnings], ['forbidden_term'])
+        # A compound term without a ban must still inherit the generic source's ban.
+        glossary[1]['forbidden'] = []
+        self.assertEqual([w['code'] for w in self.terminology_report('Speedsolving timer', 'Cronómetro de speedsolving Stackmat', glossary)], ['forbidden_term'])
+
+    def test_only_strictly_containing_preferred_phrases_override(self):
+        glossary = [term('puzzle', 'puzzle'), {'source': ['puzzle cover'], 'preferred': [], 'forbidden': ['cubierta']}]
+        warnings = self.terminology_report('puzzle cover', 'tapacubos', glossary)
+        self.assertEqual([w['code'] for w in warnings], ['preferred_term'])
+        # Overlap without containment must retain both preferences.
+        glossary = [term('world championship', 'campeonato mundial'), term('championship podium', 'podio')]
+        warnings = self.terminology_report('world championship podium', 'Podio', glossary)
+        self.assertEqual([w['code'] for w in warnings], ['preferred_term'])

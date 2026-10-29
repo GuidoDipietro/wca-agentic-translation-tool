@@ -1,7 +1,7 @@
 """Local comparison, persistence and export. No network access."""
 import copy
 from bisect import bisect_right
-from glossary import contains, source_matches, variants
+from glossary import contains, term_matches, variants
 from collections import Counter
 from datetime import datetime, timezone
 import hashlib
@@ -377,14 +377,16 @@ class Review:
                 source = self.form_sources[entry_key][i] if entry_key in self.form_sources else (self.original.by_key[entry_key].msgid if i == 0 else self.original.by_key[entry_key].msgid_plural)
                 if tokens(pattern, reference) == tokens(pattern, value) and tokens(pattern, source) != tokens(pattern, value):
                     warnings.append(self.issue('source_placeholders', entry_key, f'{prefix}: placeholders do not match the English source (this may be a pre-existing issue).', i, source, value, True))
-                for term in self.glossary:
-                    if not source_matches(term, source):
-                        continue
+                seen_forbidden = set()
+                for term, check_preferred in term_matches(self.glossary, source):
                     target_language = self.original.po.metadata.get('Language', '')
                     for forbidden in variants(term['forbidden'], target_language):
+                        if forbidden.casefold() in seen_forbidden:
+                            continue
+                        seen_forbidden.add(forbidden.casefold())
                         if forbidden and re.search(r'(?<!\w)' + re.escape(forbidden) + r'(?!\w)', value, re.I):
                             warnings.append(self.issue('forbidden_term', entry_key, f'{prefix}: term forbidden by the glossary: {forbidden}.', i, source + forbidden, value, True))
-                    if term['preferred'] and not contains(value, variants(term['preferred'], target_language)):
+                    if check_preferred and term['preferred'] and not contains(value, variants(term['preferred'], target_language)):
                         warnings.append(self.issue('preferred_term', entry_key, f"{prefix}: check terminology; expected: {', '.join(term['preferred'])}.", i, source + json.dumps(variants(term['preferred'], target_language)), value, True))
             replacements[entry_key] = values
         self.dismissed_issues = []
