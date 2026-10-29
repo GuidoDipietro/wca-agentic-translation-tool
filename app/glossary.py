@@ -47,3 +47,28 @@ def source_matches(term, text):
 
 def essential(term):
     return any(word.casefold() in ESSENTIAL_SOURCE for word in term['source'])
+
+
+def term_matches(glossary, text):
+    """Match terms; prefer specific phrases over fully covered generic terms.
+
+    The boolean controls only preferred-translation checks. Every matched term
+    still participates in forbidden-translation checks.
+    """
+    matched = []
+    for term in glossary:
+        spans = {(match.start(), match.end())
+                 for word in variants(term['source'], 'en') if word
+                 for match in re.finditer(r'(?<!\w)' + re.escape(word) + r'(?!\w)', text, re.I)}
+        if spans:
+            matched.append((term, spans))
+    result = []
+    for index, (term, spans) in enumerate(matched):
+        uncovered = any(not any(
+            other_index != index and other['preferred'] and left <= start and end <= right
+            and (left < start or end < right)
+            for other_index, (other, other_spans) in enumerate(matched)
+            for left, right in other_spans)
+            for start, end in spans)
+        result.append((term, uncovered))
+    return result

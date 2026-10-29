@@ -40,6 +40,9 @@ class BrowserTests(unittest.TestCase):
     def test_interface_language_switch_preserves_work(self):
         self.run_browser('i18n')
 
+    def test_glossary_configuration(self):
+        self.run_browser('glossary')
+
     def test_demo_stages_and_24_hour_times(self):
         self.run_browser('demo')
 
@@ -66,7 +69,7 @@ class BrowserTests(unittest.TestCase):
             auth=None
             provider=None
             provider_thread=None
-            connections=Connections(root/'.env',demo=workspace_mode in ('demo','i18n','recovery'))
+            connections=Connections(root/'.env',demo=workspace_mode in ('demo','i18n','recovery','glossary'))
             if workspace_mode=='automatic':
                 native='fr:\n  stable: Déjà traduit\n  greeting: ""\n  count:\n    one: ""\n    many: ""\n    other: ""\n'
                 units=[{'context':'stable','source':['Already translated'],'target':['Déjà traduit']},{'context':'greeting','source':['Hello, %{name}'],'target':['']},{'context':'count','source':['One cube','%{count} cubes'],'target':['','','']}]
@@ -91,8 +94,17 @@ class BrowserTests(unittest.TestCase):
                     auth.status.return_value={'active':'browser-account','accounts':[{'id':'browser-account','email':'test@example.org','connected':False,'can_translate':False}],'error':None}
                 auth.disconnect.side_effect=disconnect
                 fake_translator=Mock();fake_translator.models.return_value=[{'id':'test-model','name':'Test model'}]
-            elif workspace_mode in ('demo','i18n','recovery'):
+            elif workspace_mode in ('demo','i18n','recovery','glossary'):
                 controller=Workspace(root/'data',DemoClient())
+                if workspace_mode == 'glossary':
+                    from glossary_store import GlossaryStore
+                    defaults = root / 'defaults'
+                    defaults.mkdir()
+                    (defaults / 'es_419.json').write_text(json.dumps({'version': 1, 'language': 'es_419', 'entries': [
+                        {'source': ['Trainee Delegate', 'Trainee Delegates'], 'preferred': ['Referencia inicial'], 'forbidden': []},
+                        {'source': ['Cube'], 'preferred': ['Cubo'], 'forbidden': []},
+                    ]}))
+                    controller.glossaries = GlossaryStore(root / 'data', defaults)
             elif workspace_mode:
                 text=fixture().replace('#, fuzzy\n','')
                 new=fixture()+'\nmsgctxt \"new\"\nmsgid \"New key\"\nmsgstr \"\"\n'
@@ -143,7 +155,7 @@ class BrowserTests(unittest.TestCase):
                     time.sleep(.1)
                 self.assertTrue(port_file.exists(),'Chrome did not open DevTools')
                 debug_port=int(port_file.read_text().splitlines()[0])
-                result=subprocess.run([node,str(Path(__file__).with_name('recovery_smoke.mjs' if workspace_mode=='recovery' else 'i18n_smoke.mjs' if workspace_mode=='i18n' else 'oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
+                result=subprocess.run([node,str(Path(__file__).with_name('glossary_smoke.mjs' if workspace_mode=='glossary' else 'recovery_smoke.mjs' if workspace_mode=='recovery' else 'i18n_smoke.mjs' if workspace_mode=='i18n' else 'oauth_smoke.mjs' if workspace_mode=='oauth' else 'automatic_smoke.mjs' if workspace_mode=='automatic' else 'demo_smoke.mjs' if workspace_mode=='demo' else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
                 self.assertEqual(result.returncode,0,result.stdout+result.stderr)
                 print(result.stdout.strip())
                 if workspace_mode=='oauth':

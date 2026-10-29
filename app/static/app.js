@@ -67,6 +67,7 @@ function showWorkspace() {
   $('export').disabled=!w.active_id || (!!w.candidate_count && !w.ready);
   $('agent-prompt').value=w.prompt;
   $('session-folder').textContent=w.folder ? t("Working folder: {0}", w.folder) : '';
+  $('session-glossary').textContent=w.active_id?t("Session glossary: {0} terms.",w.glossary_count || 0):'';
   showWorkspaceWarnings();
   $('prompt-details').hidden=!w.active_id || !w.candidate_count;
   $('generation-status').textContent=w.ai_completed && !w.ready ? t("{0}/{1} proposals generated and saved.", w.ai_completed, w.candidate_count) : '';
@@ -397,7 +398,7 @@ function download(result) {
   $('save').textContent=t("✓ File and summary exported");
 }
 document.addEventListener('keydown',event=>{
-  if($('export-dialog').open || $('connections-dialog').open || $('draft-recovery-dialog').open)return;
+  if($('glossary-dialog').open || $('export-dialog').open || $('connections-dialog').open || $('draft-recovery-dialog').open)return;
   if(syncing)return;
   if(event.ctrlKey && event.key==='Enter' && editing){event.preventDefault();act(approveEdit);return;}
   // Closing a dialog may return focus to a button. Shortcuts
@@ -640,6 +641,7 @@ async function changeUILanguage(code) {
   // already live in exportDrafts and are restored by validation().
   await flush();
   uiLanguage=code;
+  if(typeof renderGlossary==='function')renderGlossary();
   try { localStorage.setItem('wca-ui-language',code); } catch {}
   applyStaticLanguage();
   if (state) render();
