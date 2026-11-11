@@ -67,7 +67,7 @@
         "4x4x4 Blindfolded"
       ],
       "preferred": [
-        "Cube 4x4x4 à l'aveugle"
+        "4x4x4 à l'aveugle"
       ],
       "forbidden": [],
       "note": "Locales: events->444bf. Incohérent avec « 3x3x3 à l'aveugle » (sans « Cube »)."
@@ -87,7 +87,7 @@
         "5x5x5 Blindfolded"
       ],
       "preferred": [
-        "Cube 5x5x5 à l'aveugle"
+        "5x5x5 à l'aveugle"
       ],
       "forbidden": [],
       "note": "Locales: events->555bf. Même incohérence que 4x4x4."
@@ -309,7 +309,9 @@
       ],
       "preferred": [
         "compétiteur",
-        "compétiteurs"
+        "compétiteurs",
+        "compétitrice",
+        "compétitrices"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -406,7 +408,11 @@
         "Délégués",
         "Délégué WCA",
         "Délégués WCA",
-        "Délégué·e"
+        "Délégué·e",
+        "Déléguée",
+        "Déléguées",
+        "Déléguée WCA",
+        "Déléguées WCA"
       ],
       "forbidden": [],
       "note": "Locales, Regulations. Majuscule pour le rôle."
@@ -568,7 +574,7 @@
         "Final Stage"
       ],
       "preferred": [
-        "phase Finale"
+        "Finale"
       ],
       "forbidden": [],
       "note": "Regulations: I2."
@@ -590,7 +596,9 @@
       ],
       "preferred": [
         "accompagnateur",
-        "accompagnateurs"
+        "accompagnateurs",
+        "accompagnatrice",
+        "accompagnatrices"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -660,7 +668,9 @@
       ],
       "preferred": [
         "Délégué Junior",
-        "Délégués Juniors"
+        "Délégués Juniors",
+        "Déléguée Junior",
+        "Déléguées Juniors"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -670,7 +680,10 @@
         "Lead Delegate"
       ],
       "preferred": [
-        "Délégué principal"
+        "Délégué principal",
+        "Déléguée principale",
+        "Délégués principaux",
+        "Déléguées principales"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -716,10 +729,11 @@
       "preferred": [
         "moyenne",
         "moyennes",
-        "moyenne arithmétique"
+        "moyenne arithmétique",
+        "signifie"
       ],
       "forbidden": [],
-      "note": "Locales: « mean » et « average » donnent tous deux « moyenne »."
+      "note": "Locales: « mean » et « average » donnent tous deux « moyenne ». Signifie est juste là pour éviter des warning inutiles"
     },
     {
       "source": [
@@ -802,7 +816,9 @@
       ],
       "preferred": [
         "nouveau venu",
-        "nouveaux venus"
+        "nouveaux venus",
+        "nouvelle venue",
+        "nouvelles venues"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -860,7 +876,9 @@
       "preferred": [
         "organisateur",
         "organisateurs",
-        "organisateur·s"
+        "organisateur·s",
+        "organisatrice",
+        "organisatrices"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1005,7 +1023,7 @@
         "Quarterfinal Stage"
       ],
       "preferred": [
-        "phase Quarts de finale"
+        "Quart de finale"
       ],
       "forbidden": [],
       "note": "Regulations: I2."
@@ -1051,7 +1069,9 @@
       ],
       "preferred": [
         "Délégué Régional",
-        "Délégués Régionaux"
+        "Délégués Régionaux",
+        "Déléguée Régionale",
+        "Déléguées Régionales"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1215,7 +1235,9 @@
       ],
       "preferred": [
         "saisisseur de résultats",
-        "saisisseurs de résultats"
+        "saisisseurs de résultats",
+        "saisisseuse de résultats",
+        "saisisseuses de résultats"
       ],
       "forbidden": [],
       "note": "Choix de relecture. Le Règlement (1g) dit « teneur de scores »."
@@ -1244,7 +1266,12 @@
       ],
       "preferred": [
         "mélange",
-        "mélanges"
+        "mélanges",
+        "mélanger",
+        "mélangé",
+        "mélangée",
+        "mélangés",
+        "mélangées"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1268,7 +1295,9 @@
       ],
       "preferred": [
         "mélangeur",
-        "mélangeurs"
+        "mélangeurs",
+        "mélangeuse",
+        "mélangeuses"
       ],
       "forbidden": [],
       "note": "Regulations: 1f. Pour le logiciel : « générateur de mélanges »."
@@ -1308,7 +1337,7 @@
         "Semifinal Stage"
       ],
       "preferred": [
-        "phase Demi-finale"
+        "Demi-finale"
       ],
       "forbidden": [],
       "note": "Regulations: I2."
@@ -1320,7 +1349,9 @@
       ],
       "preferred": [
         "Délégué Senior",
-        "Délégués Seniors"
+        "Délégués Seniors",
+        "Déléguée Senior",
+        "Déléguées Seniors"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1330,7 +1361,8 @@
         "Senior Member"
       ],
       "preferred": [
-        "Membre expérimenté"
+        "Membre expérimenté",
+        "Membre expérimentée"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1363,7 +1395,8 @@
       ],
       "preferred": [
         "résolution",
-        "résolutions"
+        "résolutions",
+        "résoudre"
       ],
       "forbidden": [],
       "note": "Locales traduit parfois « Solves » par « Essais »."
@@ -1498,7 +1531,9 @@
       "preferred": [
         "Apprenti Délégué",
         "Apprentis Délégués",
-        "Apprenti·e Délégué·e"
+        "Apprenti·e Délégué·e",
+        "Apprentie Déléguée",
+        "Apprenties Déléguées"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1546,7 +1581,8 @@
       ],
       "preferred": [
         "bénévole",
-        "bénévoles"
+        "bénévoles",
+        "bénévolat"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1566,7 +1602,8 @@
         "WCA Appeals Committee"
       ],
       "preferred": [
-        "Comité d'appel de la WCA"
+        "Comité d'appel de la WCA",
+        "Comité d'appels"
       ],
       "forbidden": [],
       "note": "Locales. Libellé : « Comité d'appels »."
@@ -1576,7 +1613,8 @@
         "WCA Archive Team"
       ],
       "preferred": [
-        "Équipe des archives de la WCA"
+        "Équipe des archives de la WCA",
+        "Équipe des archives"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1599,7 +1637,8 @@
         "WCA Chair"
       ],
       "preferred": [
-        "Président·e de la WCA"
+        "Président de la WCA",
+        "Présidente de la WCA"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1609,7 +1648,10 @@
         "WCA Chief Operating Officer"
       ],
       "preferred": [
-        "Directeur des opérations de la WCA"
+        "Directeur des opérations de la WCA",
+        "Directeur des opérations",
+        "Directrice des opérations de la WCA",
+        "Directrice des opérations"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1619,7 +1661,8 @@
         "WCA Communication Team"
       ],
       "preferred": [
-        "Équipe communication de la WCA"
+        "Équipe communication de la WCA",
+        "Équipe communication"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1630,7 +1673,8 @@
         "Competition Announcement Team"
       ],
       "preferred": [
-        "Équipe des annonces de compétitions de la WCA"
+        "Équipe des annonces de compétitions de la WCA",
+        "Équipe des annonces de compétitions"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1640,7 +1684,8 @@
         "WCA Executive Assistants Team"
       ],
       "preferred": [
-        "Équipe des assistants exécutifs de la WCA"
+        "Équipe des assistants exécutifs de la WCA",
+        "Équipe des assistants exécutifs"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1650,7 +1695,10 @@
         "WCA Executive Director"
       ],
       "preferred": [
-        "Directeur·rice Exécutif·ve de la WCA"
+        "Directeur Exécutif de la WCA",
+        "Directrice Exécutive de la WCA",
+        "Directeur Exécutif",
+        "Directrice Exécutive"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1660,7 +1708,8 @@
         "WCA Financial Committee"
       ],
       "preferred": [
-        "Comité financier de la WCA"
+        "Comité financier de la WCA",
+        "Comité financier"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1680,7 +1729,8 @@
         "WCA Integrity Committee"
       ],
       "preferred": [
-        "Comité d'intégrité de la WCA"
+        "Comité d'intégrité de la WCA",
+        "Comité d'intégrité"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1700,7 +1750,8 @@
         "WCA Major Championship Team"
       ],
       "preferred": [
-        "Équipe des championnats majeurs de la WCA"
+        "Équipe des championnats majeurs de la WCA",
+        "Équipe des championnats majeurs"
       ],
       "forbidden": [],
       "note": "Locales. La description dit « grands championnats »."
@@ -1710,7 +1761,8 @@
         "WCA Marketing Team"
       ],
       "preferred": [
-        "Équipe marketing de la WCA"
+        "Équipe marketing de la WCA",
+        "Équipe marketing"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1733,7 +1785,8 @@
         "Quality Assurance Committee"
       ],
       "preferred": [
-        "Comité d'assurance qualité de la WCA"
+        "Comité d'assurance qualité de la WCA",
+        "Comité d'assurance qualité"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1746,7 +1799,8 @@
       "preferred": [
         "Règlement de la WCA",
         "Règlement WCA",
-        "Règlement"
+        "Règlement",
+        "ensemble de règles"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1757,10 +1811,13 @@
         "Regulations Committee"
       ],
       "preferred": [
-        "Comité réglementaire de la WCA"
+        "Comité des règlements de la WCA",
+        "comité des règlements"
       ],
-      "forbidden": [],
-      "note": "Locales. La description dit « comité des règlements »."
+      "forbidden": [
+        "Comité réglementaire"
+      ],
+      "note": "Locales: forme du texte courant. Le libellé page->teams_committees_councils->groups_name->wrc dit « Comité réglementaire », à éviter."
     },
     {
       "source": [
@@ -1807,7 +1864,8 @@
         "WCA Treasurer"
       ],
       "preferred": [
-        "Trésorier·ère de la WCA"
+        "Trésorier de la WCA",
+        "Trésorière de la WCA"
       ],
       "forbidden": [],
       "note": "Locales écrit « Tresorier·ère » (accent manquant)."
@@ -1817,7 +1875,8 @@
         "WCA Vice-Chair"
       ],
       "preferred": [
-        "Vice-président·e de la WCA"
+        "Vice-président de la WCA",
+        "Vice-présidente de la WCA"
       ],
       "forbidden": [],
       "note": "Locales"
@@ -1873,6 +1932,54 @@
         "records du monde"
       ],
       "note": "Locales fr-CA: « Records Mondiaux »."
+    },
+    {
+      "source": [
+        "scramble set",
+        "scramble sets"
+      ],
+      "preferred": [
+        "série de mélanges",
+        "séries de mélanges"
+      ],
+      "forbidden": [],
+      "note": "Choisi par les traducteurs."
+    },
+    {
+      "source": [
+        "Set %{number}"
+      ],
+      "preferred": [
+        "Série %{number}"
+      ],
+      "forbidden": [],
+      "note": "Locales: competitions->h2h->set_number. Série de mélanges."
+    },
+    {
+      "source": [
+        "digest",
+        "digests"
+      ],
+      "preferred": [
+        "résumé",
+        "résumés"
+      ],
+      "forbidden": [],
+      "note": "Rapport périodique des comités (WRC, WQAC, Integrity Committee). Locales: incidents_log->sent_in_digest."
+    },
+    {
+      "source": [
+        "runner",
+        "runners"
+      ],
+      "preferred": [
+        "coureur",
+        "coureurs",
+        "coureuse",
+        "coureuses"
+      ],
+      "forbidden": [],
+      "note": "Bénévole qui transporte les puzzles et feuilles de score entre les compétiteurs et les juges."
     }
   ]
 }
