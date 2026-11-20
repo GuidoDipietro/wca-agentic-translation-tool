@@ -15,6 +15,8 @@ translations or unredacted provider responses.
 If a credential is exposed, revoke it at the provider and reconnect through the
 application. Removing it from a file or Git history does not revoke access.
 
+The LibreTranslate provider sends source text only to the server address the user configures, or to the user's own installed `libretranslate` command, which the app starts bound to 127.0.0.1 after an explicit interface action and stops on exit. LibreTranslate itself downloads language models from its own index. The application never returns that address or its API key.
+
 Automated tests use simulated providers. Dependency audits and local secret scans
 do not guarantee the absence of vulnerabilities. Run the checks documented in
 [Development and deployment](README.md#development-and-deployment) when validating changes.

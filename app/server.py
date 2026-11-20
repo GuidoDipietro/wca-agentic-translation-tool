@@ -5,6 +5,7 @@ import fcntl
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
+import signal
 import sys
 import threading
 from urllib.parse import urlsplit, parse_qs
@@ -16,13 +17,14 @@ from connections import Connections
 from openai_auth import ChatGPTAuth
 from translation import OpenAITranslator, generate_proposals, openai_api_key, translator_for
 from claude_code import UNAVAILABLE, ClaudeCodeTranslator
+from libretranslate import LibreTranslateTranslator, ManagedEngine, libretranslate_endpoint
 from network import LOCAL_REQUEST_TIMEOUT
 
 ROOT = Path(__file__).resolve().parent
 
 
 def ai_translators(connections, auth, claude=None):
-    return {'chatgpt': OpenAITranslator(auth.access_token), 'openai': OpenAITranslator(lambda: openai_api_key(connections)), 'claude-code': claude or ClaudeCodeTranslator()}
+    return {'chatgpt': OpenAITranslator(auth.access_token), 'openai': OpenAITranslator(lambda: openai_api_key(connections)), 'claude-code': claude or ClaudeCodeTranslator(), 'libretranslate': LibreTranslateTranslator(libretranslate_endpoint(connections), ManagedEngine())}
 
 
 def make_handler(controller, connections=None, auth=None, translators=None):
@@ -39,7 +41,8 @@ def make_handler(controller, connections=None, auth=None, translators=None):
     def connection_status():
         claude = None if demo else translators.get('claude-code')
         claude_status = claude.status() if claude else UNAVAILABLE
-        return {'config': connections.status(), 'chatgpt': auth.status(), 'claude_code': claude_status, 'demo': demo}
+        argos = None if demo else translators.get('libretranslate')
+        return {'config': connections.status(), 'chatgpt': auth.status(), 'claude_code': claude_status, 'libretranslate': argos.status() if argos else {'configured': False, 'installed': False}, 'demo': demo}
 
     def snapshot():
         nonlocal cached_state
@@ -351,6 +354,8 @@ def main():
     if not 1 <= args.port <= 65535:
         parser.error('The port must be between 1 and 65535.')
     args.data_dir.mkdir(parents=True, exist_ok=True)
+    # Exit normally on SIGTERM so atexit stops the managed engine.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     # Prevent two servers from overwriting the same progress.
     with (args.data_dir / '.lock').open('a') as lock:
         try:

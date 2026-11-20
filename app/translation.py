@@ -296,6 +296,9 @@ def generate_proposals(workspace, translators, provider, model, progress=None, m
         raise ReviewError('Choose an available model before generating translations.')
     # Check access before starting billable batches.
     translator.check_access()
+    prepare = getattr(translator, 'prepare', None)
+    if prepare:
+        prepare(workspace.work.get('language', 'es_419'), lambda message: emit(1, message))
     cache_path = folder / 'generation.json'
     cache = read_json(cache_path) if cache_path.exists() else {'version': 1, 'session_id': workspace.active_id, 'base_sha256': workspace.work['base_sha256'], 'entries': {}}
     if cache.get('session_id') != workspace.active_id or cache.get('base_sha256') != workspace.work['base_sha256'] or not isinstance(cache.get('entries'), dict):

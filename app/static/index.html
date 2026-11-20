@@ -15,7 +15,7 @@
   <div class="project-controls">
     <label>Component<select id="component"><option value="locales">Locales · website</option><option value="payload">Payload CMS · website content</option><option value="regulations">Regulations · rules</option></select></label>
     <label>Target language<select id="language"><option value="es_419">Latin American Spanish · es_419</option></select></label>
-    <label class="model-control">AI<select id="ai-provider"><option value="chatgpt">ChatGPT</option><option value="claude-code">Claude Code · local</option></select></label>
+    <label class="model-control">AI<select id="ai-provider"><option value="chatgpt">ChatGPT</option><option value="claude-code">Claude Code · local</option><option value="libretranslate">Argos · LibreTranslate</option></select></label>
     <label class="model-control">Model<select id="model"><option value="">Connect ChatGPT</option></select></label>
     <button id="generate" class="primary" hidden>Continue translation</button>
     <button id="reference-proposals" hidden>Use reference as proposals</button>
@@ -80,6 +80,7 @@
 <dialog id="connections-dialog"><div class="dialog-heading"><h2>Connections</h2><button id="connections-close" aria-label="Close connections">×</button></div>
 <section class="connection-card"><h3>ChatGPT</h3><p id="chatgpt-status">Disconnected</p><button id="chatgpt-connect" class="primary">Connect ChatGPT</button><details id="chatgpt-options" hidden><summary>More options</summary><label><input id="chatgpt-new-account" type="checkbox"> Use another ChatGPT account on the next sign-in</label></details></section>
 <section class="connection-card"><h3>Claude Code</h3><p id="claude-status">Not checked</p><p class="muted">Uses your own Claude Code sign-in on this computer. To connect, run claude auth login in a terminal, then reopen Connections.</p></section>
+<section class="connection-card"><h3>Argos · LibreTranslate</h3><p id="libretranslate-status">Not installed · pipx install libretranslate</p><p class="muted">Free machine translation, with no glossary or context awareness. The app starts LibreTranslate itself when it is installed; the address is only for a server you run yourself.</p><label>Server address<input id="libretranslate-url" type="url" placeholder="http://127.0.0.1:5000"></label><label>API key (optional)<input id="libretranslate-key" type="password" autocomplete="new-password"></label><button id="libretranslate-save">Save</button></section>
 <section class="connection-card"><h3>Weblate</h3><label>Weblate token<input id="weblate-key" type="password" autocomplete="new-password" placeholder="Paste your token"></label><p id="weblate-status" role="status"></p><button id="connections-save">Save</button></section>
 <p id="connection-message" role="status"></p></dialog>
 <dialog id="draft-recovery-dialog" aria-labelledby="draft-recovery-title">

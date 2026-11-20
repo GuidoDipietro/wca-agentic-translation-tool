@@ -18,7 +18,7 @@ class Connections:
         return self.overrides[name] if name in self.overrides else env_value(name, self.env_path)
 
     def configure(self, values):
-        allowed = {'WEBLATE_TOKEN', 'OPENAI_API_KEY', 'OPENAI_MODEL'}
+        allowed = {'WEBLATE_TOKEN', 'OPENAI_API_KEY', 'OPENAI_MODEL', 'LIBRETRANSLATE_URL', 'LIBRETRANSLATE_API_KEY'}
         if not isinstance(values, dict) or not set(values).issubset(allowed):
             raise ReviewError('Invalid connection fields.')
         cleaned = {}
@@ -30,10 +30,14 @@ class Connections:
                 checked_token(value, name)
             elif value and not re.fullmatch(r'[A-Za-z0-9_.:/-]{1,160}', value):
                 raise ReviewError('Invalid model identifier.')
+            if name == 'LIBRETRANSLATE_URL':
+                if value and not value.startswith(('http://', 'https://')):
+                    raise ReviewError('The LibreTranslate address must start with http:// or https://.')
+                value = value.rstrip('/')
             cleaned[name] = value
         if self.demo:
             raise ReviewError('The demo does not use credentials.')
         self.overrides.update(cleaned)
 
     def status(self):
-        return {'weblate': bool(self.get('WEBLATE_TOKEN')), 'openai': bool(self.get('OPENAI_API_KEY')), 'model': self.get('OPENAI_MODEL')}
+        return {'weblate': bool(self.get('WEBLATE_TOKEN')), 'openai': bool(self.get('OPENAI_API_KEY')), 'model': self.get('OPENAI_MODEL'), 'libretranslate': bool(self.get('LIBRETRANSLATE_URL'))}
