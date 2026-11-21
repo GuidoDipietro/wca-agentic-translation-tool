@@ -129,11 +129,11 @@ def main():
         encode(document)
         if args.import_file:
             # Use the same process lock as the server to avoid lost UI edits.
-            import fcntl
+            from filelock import exclusive_lock
             args.data_dir.mkdir(parents=True, exist_ok=True)
             with (args.data_dir / '.lock').open('a') as lock:
                 try:
-                    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    exclusive_lock(lock)
                 except BlockingIOError:
                     raise ReviewError('Stop the server before importing a glossary.') from None
                 store = GlossaryStore(args.data_dir)

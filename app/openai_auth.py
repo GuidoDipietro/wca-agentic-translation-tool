@@ -71,7 +71,12 @@ class ChatGPTAuth:
 
     def save(self):
         atomic_write(self.path, json.dumps(self.data, ensure_ascii=False, indent=2) + '\n')
-        self.path.chmod(0o600)
+        try:
+            self.path.chmod(0o600)
+        except (OSError, NotImplementedError):
+            # Windows has no Unix permission bits; the file stays private
+            # to the user profile, and the server never serves it over HTTP.
+            pass
 
     def discovery(self):
         if not self.discovery_cache:
