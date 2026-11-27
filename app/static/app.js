@@ -65,7 +65,7 @@ function showWorkspace() {
   if(!$('component').dataset.initialized) {$('component').value=w.component || 'locales';setLanguage(w.language || 'es_419',w.language_name);$('component').dataset.initialized='true';}
   $('export').textContent=t("Download translation ↗");
   $('workspace-status').textContent=syncFailed ? t("Synchronization did not complete. The last session has been preserved.") : !w.active_id ? t("Prepare your first synchronization.") : !w.candidate_count ? t("No pending entries in {0} / {1} in this session.", w.component, w.language) : w.ready ? t("{0} proposals ready for review.", w.candidate_count) : t("{0} entries awaiting translation.", w.candidate_count);
-  $('workspace-detail').textContent=w.demo ? t("Try reviewing the sample proposals.") : t("{0}ChatGPT proposes translations; you review them before downloading.", w.created_at ? t("Base downloaded: ")+formatDateTime(w.created_at)+'. ' : '');
+  $('workspace-detail').textContent=w.demo ? t("Try reviewing the sample proposals.") : t("{0}AI proposes translations; you review them before downloading.", w.created_at ? t("Base downloaded: ")+formatDateTime(w.created_at)+'. ' : '');
   $('sessions').replaceChildren();
   if(!w.sessions.length) {const option=textNode('option',t("No sessions yet"));option.value='';$('sessions').append(option);}
   for(const session of w.sessions) {const option=textNode('option',t("{0} / {1} · {2} · {3} entries", session.component || 'regulations', session.language || 'es_419', formatDateTime(session.created_at), session.candidates));option.value=session.id;$('sessions').append(option);}
@@ -180,6 +180,17 @@ function diff(a, b) {
   return [old, proposed];
 }
 function diffText(parts, className) { const box = textNode('div','','text'); for (const part of parts) box.append(textNode('span',part.text,part.changed ? className : '')); return box; }
+// diff() returns the old and the new token lists separately. Unchanged tokens appear in both lists in the same order, so one pass merges the lists into a single text that shows each removed and added token where it occurs.
+function inlineDiff(a, b) {
+  const [old, proposed] = diff(a, b), box = textNode('div','','text'); let j = 0;
+  for (const part of old) {
+    if (part.changed) { box.append(textNode('span',part.text,'removed')); continue; }
+    while (proposed[j].changed) box.append(textNode('span',proposed[j++].text,'added'));
+    box.append(part.text); j++;
+  }
+  for (; j<proposed.length; j++) box.append(textNode('span',proposed[j].text,'added'));
+  return box;
+}
 function flagLabel(flag) { return `${flag.term} → ${flag.replacement.join(' / ')}`; }
 function flagText(value, flags, label) {
   const box = textNode('div','','text');
@@ -204,7 +215,9 @@ function renderEntry() {
   $('position').textContent = t("CHANGE {0} OF {1}", state.entries.indexOf(e)+1, state.entries.length);
   $('context').textContent = e.context || t("No context"); $('status').textContent = t(labels[e.decision.status]) + (e.conflict ? t(" · Conflict") : '');
   $('source').replaceChildren();
-  e.source.forEach((value,i) => { if (e.source.length>1) $('source').append(textNode('div',i===0?t("Singular"):t("Plural"),'plural-label')); $('source').append(textNode('div',value,'text')); });
+  const previous = e.previous_source && JSON.stringify(e.previous_source) !== JSON.stringify(e.source) ? e.previous_source : null;
+  if (previous) $('source').append(textNode('p',t("Changes since the previous English."),'legend'));
+  e.source.forEach((value,i) => { if (e.source.length>1) $('source').append(textNode('div',i===0?t("Singular"):t("Plural"),'plural-label')); $('source').append(previous ? inlineDiff(previous[i] ?? '',value) : textNode('div',value,'text')); });
   $('reference-panel').hidden = !e.reference;
   $('use-reference').hidden = !e.reference;
   $('use-reference').replaceChildren(t("Use {0}", state.workspace?.reference?.language_name || '') + ' ', textNode('kbd','U'));
@@ -521,6 +534,7 @@ function provider() {return $('manual-mode').checked?'manual':state?.workspace?.
 const AI={
   chatgpt:{connect:()=>t("Connect ChatGPT"),ready:()=>!!activeAccount()?.can_translate,key:()=>activeAccount()?.id},
   'claude-code':{connect:()=>t("Sign in to Claude Code"),ready:()=>!!connectionState?.claude_code?.logged_in,key:()=>'claude-code'},
+  libretranslate:{connect:()=>t("Set up Argos"),ready:()=>!!(connectionState?.libretranslate?.configured||connectionState?.libretranslate?.installed),key:()=>'libretranslate'},
 };
 function canTranslate() {return !!AI[provider()]?.ready();}
 function connectLabel() {return (AI[provider()] || AI.chatgpt).connect();}
@@ -619,7 +633,7 @@ $('language').onchange=()=>{hideNextStep();fillReference();showWorkspaceWarnings
 $('reference').onchange=()=>store('wca-reference:'+$('language').value,$('reference').value);
 $('model').onfocus=()=>{ensureModels();};
 $('model').onchange=()=>store('wca-model:'+provider(),$('model').value);
-if(stored('wca-provider')==='claude-code')$('ai-provider').value='claude-code';
+if(Object.hasOwn(AI,stored('wca-provider')))$('ai-provider').value=stored('wca-provider');
 $('ai-provider').onchange=()=>act(async()=>{
   store('wca-provider',$('ai-provider').value);
   $('model').replaceChildren(new Option(connectLabel(),''));showAIOptions();await ensureModels();
@@ -641,16 +655,17 @@ async function refreshConnections() {
 }
 function showConnections() {
   const active=activeAccount(), configured=connectionState.config.weblate;
-  $('connection-summary').textContent=connectionState.demo?t("Demo without credentials"):`${configured?'Weblate ✓':t("Weblate token missing")} · ${active?.connected?'ChatGPT ✓':t("ChatGPT disconnected")}${connectionState.claude_code?.logged_in?' · Claude Code ✓':''}`;
+  $('connection-summary').textContent=connectionState.demo?t("Demo without credentials"):`${configured?'Weblate ✓':t("Weblate token missing")} · ${active?.connected?'ChatGPT ✓':t("ChatGPT disconnected")}${connectionState.claude_code?.logged_in?' · Claude Code ✓':''}${connectionState.libretranslate?.configured||connectionState.libretranslate?.installed?' · Argos ✓':''}`;
   const claude=connectionState.claude_code;
   $('claude-status').textContent=!claude?.available?t("Not installed"):claude.logged_in?t("✓ Signed in · {0}",claude.subscription):t("Installed · not signed in");
+  $('libretranslate-status').textContent=connectionState.libretranslate?.configured?t("✓ Server configured"):connectionState.libretranslate?.installed?t("Installed · starts on demand"):t("Not installed · pipx install libretranslate");
   $('chatgpt-status').textContent=active?.connected?`${active.email}${active.can_translate?'':t(" · plan usage authorization required")}`:active?t("{0} · disconnected",active.email):t("Disconnected");
   $('chatgpt-options').hidden=!active || active.connected;
   $('chatgpt-connect').textContent=active?.connected?t("Disconnect"):t("Connect ChatGPT");
   $('chatgpt-connect').classList.toggle('primary',!active?.connected);
   $('weblate-key').placeholder=configured?t("•••••••• · Token saved"):t("Paste your token");
   $('weblate-status').textContent=configured?t("✓ Token saved"):t("No token configured yet.");
-  for(const id of ['chatgpt-connect','weblate-key','connections-save'])$(id).disabled=connectionState.demo;
+  for(const id of ['chatgpt-connect','weblate-key','connections-save','libretranslate-url','libretranslate-key','libretranslate-save'])$(id).disabled=connectionState.demo;
   $('connection-message').textContent=t(connectionState.chatgpt.error || '') || (connectionState.demo?t("The demo does not use real connections."):'');
   showAIOptions();
 }
@@ -661,6 +676,16 @@ $('connections-save').onclick=()=>act(async()=>{
   await api('/api/connections',{values});$('weblate-key').value='';languageCache.clear();
   await refreshConnections();$('connection-message').textContent=t("Token saved for this server session.");
   await ensureLanguages();
+});
+// The address is sent whenever the user edited the address field, even if that field is now empty, so that emptying the address field removes the saved server. The API key is sent only when one was typed, because the saved key is never shown and an empty key field means "keep the saved key" as long as the address is unchanged. When the address changes without a new key, the server drops the saved key (Connections.configure in connections.py).
+$('libretranslate-url').oninput=()=>{$('libretranslate-url').dataset.touched='1';};
+$('libretranslate-save').onclick=()=>act(async()=>{
+  const values={};
+  if($('libretranslate-url').dataset.touched)values.LIBRETRANSLATE_URL=$('libretranslate-url').value;
+  if($('libretranslate-key').value)values.LIBRETRANSLATE_API_KEY=$('libretranslate-key').value;
+  await api('/api/connections',{values});
+  for(const id of ['libretranslate-url','libretranslate-key']){$(id).value='';delete $(id).dataset.touched;}
+  modelCache.clear();await refreshConnections();$('connection-message').textContent=t("Argos settings saved for this server session.");
 });
 $('chatgpt-connect').onclick=()=>act(async()=>{
   await flush();

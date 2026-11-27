@@ -79,6 +79,19 @@ class WorkspaceTests(unittest.TestCase):
         self.assertIn('msgstr "Nuevo %s"',result['content'])
         self.assertEqual(len(Catalog(result['content']).entries),4)
 
+    def test_english_recorded_by_weblate_fills_in_when_the_local_sync_has_no_older_english(self):
+        recorded=fixture().replace('msgctxt "greeting"','#| msgid "Hi %s"\nmsgctxt "greeting"')
+        self.sync(downloads(recorded,fixture()))
+        item=next(i for i in self.workspace.work['entries'] if i['context']=='greeting')
+        self.assertEqual((item['reasons'],item['previous_source']),(['needs_review'],['Hi %s']))
+        self.sync(downloads(recorded,fixture()))
+        item=next(i for i in self.workspace.work['entries'] if i['context']=='greeting')
+        self.assertEqual(item['previous_source'],['Hi %s'])
+        changed=recorded.replace('Hello %s','Hello again %s')
+        self.sync(downloads(changed,fixture().replace('Hello %s','Hello again %s')))
+        item=next(i for i in self.workspace.work['entries'] if i['context']=='greeting')
+        self.assertEqual(item['previous_source'],['Hello %s'])
+
     def test_source_changed_uses_context_and_previous_translation(self):
         old=fixture().replace('#, fuzzy\n','')
         self.sync(downloads(old,old))

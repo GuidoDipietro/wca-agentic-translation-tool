@@ -17,6 +17,7 @@ Local application for translating Locales (the website’s Ruby YAML), Regulatio
 
 - Weblate is accessed only through GET requests; publishing remains manual. OpenAI generation happens only after an explicit interface action.
 - Automatic generation never approves translations. Preserve technical checks, resumable batches and human review.
+- The LibreTranslate provider sends source text only to the configured server, or to the user's own installed `libretranslate` command that the app starts on 127.0.0.1 and stops on exit (a configured address always wins), only after an explicit interface action, and never approves translations. LibreTranslate itself downloads language models.
 - Do not add secrets or session data to Git. Do not return credentials in responses, logs or prompts.
 - The ChatGPT connection uses the official local flow: PKCE/state/nonce, verified JWTs, plan-usage permissions and account-specific credentials. Do not reuse Codex tokens or undocumented endpoints.
 - Do not present the local version as a deployed multiuser service. Public deployment is decided after local testing.

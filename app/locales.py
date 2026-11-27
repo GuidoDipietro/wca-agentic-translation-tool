@@ -9,7 +9,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 
 from languages import language_code, plural_names
-from core import Catalog, Review, ReviewError, atomic_write, digest, forms, key
+from core import Catalog, Review, ReviewError, atomic_write, digest, forms, keep_previous_source, key
 
 
 def detached(value):
@@ -183,6 +183,7 @@ def convert_units(units, native, language='es_419', aliases=()):
             translated.msgstr_plural = dict(enumerate(values))
         else:
             translated.msgstr = values[0]
+        keep_previous_source(translated, unit)
         if unit.get('fuzzy') or unit.get('state') == 10:
             translated.flags.append('fuzzy')
         target.append(translated)

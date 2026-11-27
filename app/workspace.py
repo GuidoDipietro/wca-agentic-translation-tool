@@ -118,7 +118,12 @@ def make_candidates(english, base, previous=None, pending_source_changes=None):
             reasons.insert(0, 'source_changed')
         if not reasons:
             continue
-        items.append({'key': entry_key, 'context': source.msgctxt or '', 'source': [source.msgid] + ([source.msgid_plural] if source.msgid_plural else []), 'original': forms(target), 'reasons': reasons, 'previous_source': [old.msgid] + ([old.msgid_plural] if old.msgid_plural else []) if old else None, 'previous_translation': forms(old) if old else None, 'comment': source.comment, 'translator_comment': target.tcomment, 'references': source.occurrences, 'flags': target.flags})
+        english_now = [source.msgid] + ([source.msgid_plural] if source.msgid_plural else [])
+        previous_source = [old.msgid] + ([old.msgid_plural] if old.msgid_plural else []) if old else None
+        # The previous session only holds the English of the last download. When it has no English for the entry, or the same English as now, the English that Weblate recorded is used instead, if the PO carries one, so that a change made before the last download still shows as a diff. The PO carries it as `#| msgid`; for Locales and Payload, locales.py and payload.py write that line from Weblate's previous_source.
+        if previous_source in (None, english_now) and target.previous_msgid:
+            previous_source = [target.previous_msgid] + ([target.previous_msgid_plural] if target.previous_msgid_plural else [])
+        items.append({'key': entry_key, 'context': source.msgctxt or '', 'source': english_now, 'original': forms(target), 'reasons': reasons, 'previous_source': previous_source, 'previous_translation': forms(old) if old else None, 'comment': source.comment, 'translator_comment': target.tcomment, 'references': source.occurrences, 'flags': target.flags})
         if carry_source_change:
             items[-1].update(previous_source=pending.get('previous_source'), previous_translation=pending.get('previous_translation'))
     return items

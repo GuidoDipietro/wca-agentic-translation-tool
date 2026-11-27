@@ -49,6 +49,9 @@ class BrowserTests(unittest.TestCase):
     def test_automatic_multilingual_flow(self):
         self.run_browser('automatic')
 
+    def test_argos_connection_and_translation(self):
+        self.run_browser('argos')
+
     def test_chatgpt_cross_site_callback_in_chrome(self):
         self.run_browser('oauth')
 
@@ -72,11 +75,12 @@ class BrowserTests(unittest.TestCase):
             original.write_text(fixture(),encoding='utf-8')
             proposed.write_text(fixture('Buenas %s',{0:'Un rompecabezas',1:'Muchos rompecabezas'}),encoding='utf-8')
             fake_translator=None
+            translators=None
             auth=None
             provider=None
             provider_thread=None
             connections=Connections(root/'.env',demo=workspace_mode in ('demo','i18n','recovery','glossary'))
-            if workspace_mode=='automatic':
+            if workspace_mode in ('automatic','argos'):
                 native='fr:\n  stable: Déjà traduit\n  greeting: ""\n  count:\n    one: ""\n    many: ""\n    other: ""\n'
                 units=[{'context':'stable','source':['Already translated'],'target':['Déjà traduit']},{'context':'greeting','source':['Hello, %{name}'],'target':['']},{'context':'count','source':['One cube','%{count} cubes'],'target':['','','']}]
                 english,target,mapping=convert_units(units,native,'fr')
@@ -87,6 +91,14 @@ class BrowserTests(unittest.TestCase):
                 auth=Mock();auth.status.return_value={'active':'test-account','accounts':[{'id':'test-account','email':'test@example.org','connected':True,'can_translate':True}],'error':None}
                 fake_translator=Mock();fake_translator.models.return_value=[{'id':'test-model','name':'Test model'}]
                 fake_translator.propose.side_effect=lambda model,context,progress=None: {'entries':[{'key':e['key'],'target':['Bonjour, %{name}'] if e['context']=='greeting' else ['Un cube','%{count} cubes','%{count} cubes'],'note':'French test'} for e in context['requested_entries']]}
+                if workspace_mode=='argos':
+                    from libretranslate import LibreTranslateTranslator, ManagedEngine, libretranslate_endpoint
+                    from test_libretranslate import Fake
+                    auth.status.return_value={'active':None,'accounts':[],'error':None};fake_translator=None
+                    provider=Fake();provider.languages=[{'code':'en','name':'English','targets':['en','fr']}]
+                    provider.translate=lambda q:q.replace('Hello','Bonjour').replace('One cube','Un cube')
+                    provider_thread=threading.Thread(target=provider.serve_forever,daemon=True);provider_thread.start()
+                    translators={'libretranslate':LibreTranslateTranslator(libretranslate_endpoint(connections),ManagedEngine('libretranslate-not-installed'))}
             elif workspace_mode=='next_step':
                 new_entry='\nmsgctxt "new"\nmsgid "New key"\nmsgstr "{}"\n'
                 pending=fixture()+new_entry.format('')
@@ -151,7 +163,7 @@ class BrowserTests(unittest.TestCase):
                 controller=Workspace(root/'data',client)
             else:
                 controller=Review(original,proposed,root/'data')
-            server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(controller,connections=connections,auth=auth,translators={'chatgpt':fake_translator} if fake_translator else {}))
+            server=ThreadingHTTPServer(('127.0.0.1',0),make_handler(controller,connections=connections,auth=auth,translators=translators if translators is not None else {'chatgpt':fake_translator} if fake_translator else {}))
             thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
             if workspace_mode=='oauth':
                 class ProviderHandler(BaseHTTPRequestHandler):
@@ -177,12 +189,13 @@ class BrowserTests(unittest.TestCase):
             try:
                 port_file=profile/'DevToolsActivePort'
                 for _ in range(150):
-                    if port_file.exists():break
+                    # Wait until the port file has content: read right after it appears, the file can still be empty.
+                    if port_file.exists() and port_file.read_text().strip():break
                     if proc.poll() is not None: self.fail('Chrome closed during startup')
                     time.sleep(.1)
                 self.assertTrue(port_file.exists(),'Chrome did not open DevTools')
                 debug_port=int(port_file.read_text().splitlines()[0])
-                result=subprocess.run([node,str(Path(__file__).with_name(f'{workspace_mode}_smoke.mjs' if workspace_mode in {'glossary','recovery','reference','i18n','oauth','automatic','demo','next_step'} else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
+                result=subprocess.run([node,str(Path(__file__).with_name(f'{workspace_mode}_smoke.mjs' if workspace_mode in {'glossary','recovery','reference','i18n','oauth','automatic','demo','next_step','argos'} else 'workspace_smoke.mjs' if workspace_mode else 'browser_smoke.mjs')),f'http://127.0.0.1:{server.server_port}',f'http://127.0.0.1:{debug_port}', provider.url if workspace_mode=='argos' else workspace_mode if workspace_mode in ('locales', 'payload') else 'regulations'],text=True,capture_output=True,timeout=50)
                 self.assertEqual(result.returncode,0,result.stdout+result.stderr)
                 print(result.stdout.strip())
                 if workspace_mode=='oauth':

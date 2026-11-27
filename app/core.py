@@ -48,6 +48,14 @@ def forms(entry):
     return [entry.msgstr]
 
 
+def keep_previous_source(entry, unit):
+    # Weblate's previous_source is the English an entry had before its source last changed. It arrives as one string, with the singular and the plural joined by two record-separator characters. No plural example exists in the WCA data yet, so that separator is unverified: a value with an empty part, or with a number of parts that does not fit the entry, is ignored.
+    previous = unit.get('previous_source')
+    parts = previous.split('\x1e\x1e') if isinstance(previous, str) else []
+    if all(parts) and len(parts) == (2 if entry.msgid_plural else 1):
+        entry.previous_msgid, entry.previous_msgid_plural = parts[0], parts[1] if entry.msgid_plural else None
+
+
 TRANSLATION = re.compile(r'^msgstr(?:\[(\d+)\])? "(?:[^"\\\r\n]|\\.)*"[ \t]*(?:\r?\n|$)(?:^"(?:[^"\\\r\n]|\\.)*"[ \t]*(?:\r?\n|$))*', re.M)
 
 

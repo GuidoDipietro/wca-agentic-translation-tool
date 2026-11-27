@@ -5,7 +5,7 @@ from pathlib import Path
 
 import polib
 
-from core import Catalog, Review, ReviewError, atomic_write, digest, forms, key
+from core import Catalog, Review, ReviewError, atomic_write, digest, forms, keep_previous_source, key
 from languages import language_code
 
 
@@ -53,6 +53,7 @@ def convert_units(units, native, language='es_419'):
         english.append(entry)
         translated = copy.deepcopy(entry)
         translated.msgstr = values[0]
+        keep_previous_source(translated, unit)
         if unit.get('fuzzy') or unit.get('state') == 10:
             translated.flags.append('fuzzy')
         target.append(translated)

@@ -16,6 +16,12 @@ try{
  await send('Page.navigate',{url:base});
  await wait("typeof state !== 'undefined' && state && document.querySelectorAll('.entry').length===2");
  assert(await evaluate("state.counts.pending===2"),'Initial pending count');
+ const marks=name=>evaluate(`[...document.querySelectorAll('#source .${name}')].map(e=>e.textContent).join('|')`);
+ await evaluate("current().previous_source=['Hi %s, bye'];renderEntry()");
+ assert(await marks('removed')==='Hi|,| |bye' && await marks('added')==='Hello','Changed English source shows as a diff: '+await marks('removed')+' / '+await marks('added'));
+ assert(await evaluate("document.querySelector('#source .text').textContent==='HiHello %s, bye'"),'Diff keeps the unchanged English text');
+ await evaluate("current().previous_source=current().source;renderEntry()");
+ assert(await evaluate("!document.querySelector('#source .removed,#source .added,#source .legend') && document.querySelector('#source .text').textContent==='Hello %s'"),'Unchanged English source stays plain');
  await click('accept');await wait('state.counts.accepted===1 && saving===0');
  await wait("current().context==='plural'");
  assert(await evaluate("current().context==='plural'"),'Accept advances automatically');

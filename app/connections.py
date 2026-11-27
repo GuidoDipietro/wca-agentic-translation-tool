@@ -18,7 +18,7 @@ class Connections:
         return self.overrides[name] if name in self.overrides else env_value(name, self.env_path)
 
     def configure(self, values):
-        allowed = {'WEBLATE_TOKEN', 'OPENAI_API_KEY', 'OPENAI_MODEL'}
+        allowed = {'WEBLATE_TOKEN', 'OPENAI_API_KEY', 'OPENAI_MODEL', 'LIBRETRANSLATE_URL', 'LIBRETRANSLATE_API_KEY'}
         if not isinstance(values, dict) or not set(values).issubset(allowed):
             raise ReviewError('Invalid connection fields.')
         cleaned = {}
@@ -30,10 +30,17 @@ class Connections:
                 checked_token(value, name)
             elif value and not re.fullmatch(r'[A-Za-z0-9_.:/-]{1,160}', value):
                 raise ReviewError('Invalid model identifier.')
+            if name == 'LIBRETRANSLATE_URL':
+                if value and not value.startswith(('http://', 'https://')):
+                    raise ReviewError('The LibreTranslate address must start with http:// or https://.')
+                value = value.rstrip('/')
             cleaned[name] = value
         if self.demo:
             raise ReviewError('The demo does not use credentials.')
+        # An API key belongs to the server it was saved for. When the address changes and the same request brings no key, the saved key is dropped, so that the key is never sent to a different server.
+        if 'LIBRETRANSLATE_URL' in cleaned and cleaned['LIBRETRANSLATE_URL'] != self.get('LIBRETRANSLATE_URL').rstrip('/'):
+            cleaned.setdefault('LIBRETRANSLATE_API_KEY', '')
         self.overrides.update(cleaned)
 
     def status(self):
-        return {'weblate': bool(self.get('WEBLATE_TOKEN')), 'openai': bool(self.get('OPENAI_API_KEY')), 'model': self.get('OPENAI_MODEL')}
+        return {'weblate': bool(self.get('WEBLATE_TOKEN')), 'openai': bool(self.get('OPENAI_API_KEY')), 'model': self.get('OPENAI_MODEL'), 'libretranslate': bool(self.get('LIBRETRANSLATE_URL'))}

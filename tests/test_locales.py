@@ -48,6 +48,16 @@ class LocalesTests(unittest.TestCase):
         write_json(self.w.directory(self.w.active_id)/'proposals.json',payload)
         return self.w.load_proposals()
 
+    def test_weblate_previous_source_is_kept_on_the_target_entry(self):
+        native="es-419:\n  title: Pago\n  count:\n    one: Un cubo\n    many: Varios cubos\n    other: Otros cubos\n  odd:\n    one: Un día\n    many: Varios días\n    other: Otros días\n"
+        plural={'source':['One cube','Many cubes'],'target':['Un cubo','Varios cubos','Otros cubos'],'fuzzy':True}
+        units=[{'context':'title','source':['Payment Information'],'target':['Pago'],'fuzzy':True,'previous_source':'Payment information'},
+               dict(plural,context='count',previous_source='A cube\x1e\x1eSome cubes'),
+               {'context':'odd','source':['One day','Many days'],'target':['Un día','Varios días','Otros días'],'fuzzy':True,'previous_source':'A day'}]
+        _,target,_=convert_units(units,native)
+        entries={e.msgctxt:(e.previous_msgid,e.previous_msgid_plural) for e in Catalog(target).entries}
+        self.assertEqual(entries,{'title':('Payment information',None),'count':('A cube','Some cubes'),'odd':(None,None)})
+
     def test_detects_missing_keys_and_preserves_three_plural_forms(self):
         state=self.sync()
         self.assertEqual(state['workspace']['component'],'locales')
