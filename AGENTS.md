@@ -23,7 +23,7 @@ Local application for translating Locales (the website’s Ruby YAML), Regulatio
 - The interface defaults to English and ChatGPT, and downloads only approved changes. Preserve the 🇺🇸 English / 🇦🇷 Spanish interface selector and browser preference. Languages and models load automatically; manual workflows stay under More options.
 - Heuristic check dismissals are authorized per check and text fingerprint. Do not introduce a global bypass or allow conflicts, empty translations or structural errors to be ignored. Preserve the decisions and export audit trail.
 - Visible times use 24-hour format.
-- Tests: `.venv/bin/python -m unittest discover -s tests -v`. Browser: `RUN_BROWSER_TESTS=1` with Chrome and Node >=22. Use simulated providers; do not make billable AI calls in tests.
+- Tests: `.venv/bin/python -m unittest discover -s tests -v` (`.venv\Scripts\python.exe` on Windows). Browser: `RUN_BROWSER_TESTS=1` with Chrome and Node >=22. Use simulated providers; do not make billable AI calls in tests.
 
 ## Manual testing
 

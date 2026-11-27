@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """WCA translation: localhost review and read-only synchronization with Weblate."""
 import argparse
-import fcntl
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
@@ -10,6 +9,7 @@ import threading
 from urllib.parse import urlsplit, parse_qs
 
 from core import ReviewError
+from filelock import exclusive_lock
 from workspace import Workspace
 from weblate import Client
 from connections import Connections
@@ -354,7 +354,7 @@ def main():
     # Prevent two servers from overwriting the same progress.
     with (args.data_dir / '.lock').open('a') as lock:
         try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            exclusive_lock(lock)
         except BlockingIOError:
             sys.exit('Another instance is already using this data folder.')
         from demo import DemoClient
